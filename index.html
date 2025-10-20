@@ -1,0 +1,3723 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Four Directions Nourishment Guide — Code</title>
+  
+  <style>
+    :root{
+      /* Spring sky + sprouts */
+      --bg: #f4fbff;
+      --bg-grad: radial-gradient(1200px 800px at 20% -10%, #e7f6ff 12%, transparent 60%);
+      --card:#ffffff;
+      --ink:#22324a;
+      --muted:#6b7a95;
+      --accent:#78d6ff;      /* sky blue */
+      --accent-ink:#073044;
+      --focus:#7ddc83;       /* sprout green */
+      --radius:18px;
+      --shadow: 0 10px 30px rgba(22, 64, 96, .12);
+      --pad: clamp(14px, 2.5vmin, 22px);
+      --border: #dfe8f2;
+    }
+
+    .cardlet .pic{
+      width: 88px;
+      height: 88px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+    
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      /* dreamy watercolor vibe */
+      background:
+        radial-gradient(1200px 800px at 20% -10%, #f8fbff 10%, #f1f8ff 40%, transparent 60%),
+        radial-gradient(900px 600px at 120% 10%, #f7fff9 0%, #f3fbf7 45%, transparent 70%),
+        radial-gradient(800px 600px at -10% 110%, #fdf6ff 0%, #faf1ff 45%, transparent 70%),
+        #fdfefe;
+      color: var(--ink);
+      line-height:1.5;
+    }
+
+    
+    /* web-safe cursive header stack (no downloads) */
+    header h1, h2, h3 {
+      font-family: "Brush Script MT", "Lucida Handwriting", "Segoe Script", "Apple Chancery", cursive;
+      letter-spacing: .2px;
+    }
+    
+    /* header + cards keep the spring look */
+    header{padding: var(--pad); display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom: 1px solid var(--border); background: linear-gradient(#ffffffdd, #ffffffcc); backdrop-filter: blur(6px);}
+    header h1{margin:0; font-size: clamp(22px, 3vmin, 30px);}
+    .app{max-width: 980px; margin: 0 auto; padding: calc(var(--pad) * 1.25) var(--pad) 120px;}
+    .card{background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(16px, 3vmin, 28px); border: 1px solid var(--border);}
+    .hero{position:relative; text-align:center; padding: max(6vmin, 32px); overflow:hidden;}
+    .hero::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background:
+        radial-gradient(220px 140px at 15% 20%, #e8fff1 0%, #ffffff 60%),
+        radial-gradient(240px 180px at 85% 15%, #e9f8ff 0%, #ffffff 60%),
+        radial-gradient(200px 160px at 25% 80%, #f9f0ff 0%, #ffffff 60%);
+      z-index:0; border-radius: inherit;
+    }
+    .hero::after{
+      content:"";
+      position:absolute; inset:0; opacity:.28; z-index:0;
+      background-image: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">\
+        <g fill="none" stroke="%237ddc83" stroke-width="2" stroke-linecap="round" opacity="0.8">\
+          <path d="M60 260 C80 220, 90 210, 100 190" />\
+          <path d="M100 190 c-10 -20, 10 -40, 30 -35 c15 5, 18 25, -10 30" />\
+          <path d="M240 260 C260 220, 270 210, 280 190" />\
+          <path d="M280 190 c-12 -18, 8 -38, 28 -33 c15 5, 18 23, -8 28" />\
+          <path d="M420 260 C435 225, 450 210, 465 190" />\
+          <path d="M465 190 c-12 -20, 14 -38, 32 -32 c14 5, 18 24, -8 28" />\
+        </g>\
+      </svg>');
+      background-repeat:no-repeat;
+      background-position: 10% 80%, 50% 85%, 85% 78%;
+      background-size: 40% auto;
+    }
+    .hero > * {position:relative; z-index:1}
+    
+    .cta{
+      background: linear-gradient(180deg, var(--accent), #69c8f2);
+      color: var(--accent-ink);
+      border:none; border-radius:999px; padding:14px 20px; font-weight:700; cursor:pointer;
+      box-shadow: 0 8px 20px rgba(120,214,255,.35);
+    }
+    .btn{padding:10px 14px; border-radius:999px; cursor:pointer; border:1px solid var(--border); background:#ffffff;}
+    .btn.primary{background: linear-gradient(180deg, var(--focus), #66cf77); color:#063a19; border:none; box-shadow: 0 6px 18px rgba(104,210,125,.28);}
+    .btn.ghost{background:transparent; border:1px solid #cfe2f3; color:#2b4f62;}
+    
+    input[type="number"]{
+      width:110px; padding:10px; border-radius:12px; border:1px solid var(--border);
+      background:#f7fbff; color: var(--ink);
+    }
+    
+    .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px;}
+    .cardlet{
+      background:#ffffff; border:1px solid var(--border); border-radius:14px; padding:12px;
+      display:flex; flex-direction:column; align-items:center; gap:8px; min-height:110px;
+      box-shadow: 0 6px 18px rgba(22,64,96,.06);
+    }
+    .cardlet.locked{opacity:.45; filter:saturate(.7)}
+    .food-name{font-size:14px; text-align:center; min-height:2.4em;}
+    .qty{width:90px; background:#f6fbff;}
+    .pill{background:#ffffff; border:1px solid var(--border); border-radius:999px; padding:6px 10px; color:var(--muted); font-size:12px;}
+
+    /* show one screen at a time */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    
+    /* Pills & toolbar */
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;}
+    .pill{background:#ffffff; border:1px solid var(--border); border-radius:999px; padding:6px 10px; color:var(--muted); font-size:12px;}
+    .centered{display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0;}
+    .dim{opacity:.75}
+    .warn{color: var(--danger)}
+    .toolbar {display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:16px;}
+    
+    /* Modal */
+    .modal { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center;
+             background: rgba(63,86,110,.35); backdrop-filter: blur(6px); z-index: 9999; }
+    .modal.hidden { display: none; }
+    .modal-card{background:var(--card); border:1px solid var(--border); border-radius:18px; padding:22px; max-width:560px; width:calc(100% - 32px); box-shadow:var(--shadow);}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Four Directions Nourishment Guide</h1>
+    <span id="persistBadge">Unsaved</span>
+  </header>
+
+  <main class="app">
+    <!-- Home -->
+    <section id="screen-home" class="screen active">
+      <div class="card hero">
+        <h2>Welcome!</h2>
+        <p>Plan a realistic, nourishing grocery week with one click.</p>
+        <button class="cta" id="startPlanBtn">🛒 Plan my weekly shopping trip</button>
+      </div>
+    </section>
+
+    <!-- Household size -->
+    <section id="screen-household" class="screen">
+      <div class="card">
+        <h2>Who’s eating together this week?</h2>
+        <label for="household">How many people are in your household?</label>
+        <div class="row">
+          <button class="btn" id="decBtn">–</button>
+          <input id="household" type="number" min="1" max="20" value="3" />
+          <button class="btn" id="incBtn">+</button>
+        </div>
+        <div id="hh-error" class="error hidden">Please enter a number 1–20.</div>
+        <div class="row">
+          <button class="btn" id="backHomeBtn">← Back</button>
+          <button class="btn primary" id="continueBtn" disabled>Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Next -->
+    <section id="screen-next" class="screen">
+      <div class="card">
+        <h2>Great — got it!</h2>
+        <p id="summaryText"></p>
+        <p>Next step coming soon…</p>
+        <div class="row">
+          <button class="btn" id="editHouseholdBtn">Edit household</button>
+        </div>
+      </div>
+    </section>
+    
+    
+    <!-- Intensity -->
+    <section id="screen-intensity" class="screen">
+      <div class="card">
+        <h2>How deep do you want to go this week?</h2>
+        <p class="dim">Pick your overall intensity. You can always edit per-category later.</p>
+        <div class="row">
+          <button class="btn ghost" data-intensity="0.25">🧪 Just dipping a toe (¼)</button>
+          <button class="btn ghost" data-intensity="0.5">🏃 Really trying it out (½)</button>
+          <button class="btn primary" data-intensity="1">🔥 I’m all in! (1×)</button>
+        </div>
+        <div class="toolbar">
+          <span class="pill">Household: <span id="pillHousehold">—</span></span>
+          <button class="btn" id="toFirstSubcatBtn" disabled>Start with Vegetables (1.1 Leafy)</button>
+        </div>
+      </div>
+    </section>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btns = [...document.querySelectorAll('#screen-intensity [data-intensity]')];
+      const startBtn = document.getElementById('toFirstSubcatBtn');
+    
+      function select(val){
+        // store if you have state/saveState; otherwise delete these two lines
+        if (window.state) { state.intensity = val; }
+        if (window.saveState) saveState();
+    
+        btns.forEach(b => {
+          const on = parseFloat(b.dataset.intensity) === val;
+          b.classList.toggle('primary', on);  // green on
+          b.classList.toggle('ghost', !on);   // pill off
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        if (startBtn) startBtn.disabled = false;
+      }
+    
+      // wire clicks
+      btns.forEach(b => b.addEventListener('click', () => {
+        const v = parseFloat(b.dataset.intensity);
+        if (!Number.isNaN(v)) select(v);
+      }));
+    
+      // initial paint: use saved value, else the one marked .primary in HTML, else 1×
+      const saved = (window.state && typeof state.intensity === 'number') ? state.intensity : null;
+      const fallback = btns.find(b => b.classList.contains('primary'));
+      select(saved ?? parseFloat(fallback?.dataset.intensity ?? '1'));
+    });
+    </script>
+
+    <!-- Subcategory generic screen -->
+    <section id="screen-subcat" class="screen">
+      <div class="card">
+        <div class="topbar">
+          <div class="pill" id="breadcrumb">Category 1 • Sub 1</div>
+          <div class="pill" id="quotaPill">0 / 0 chosen</div>
+        </div>
+        <h2 id="subcatTitle">Loading…</h2>
+        <p class="dim" id="subcatHint">Allocate servings for this subcategory. Rounds up; when the quota is reached, cards grey out.</p>
+
+        <div id="grid" class="grid"></div>
+
+        <div class="toolbar">
+          <div class="row">
+            <button class="btn ghost" id="backBtn">← Back</button>
+            <button class="btn" id="resetBtn">Reset amounts</button>
+          </div>
+          <div class="row">
+            <button class="btn primary" id="nextBtn">Next →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shopping List -->
+    <section id="screen-shopping" class="screen">
+      <div class="card">
+        <h2>🛍️ Your Shopping List</h2>
+        <p class="dim">Totals below combine everything you picked across categories.</p>
+    
+        <div id="shoppingSummary" class="pill" style="margin:10px 0;"></div>
+        <div id="shoppingTableWrap" style="overflow:auto; max-height:60vh;"></div>
+    
+        <div class="toolbar">
+          <div class="row">
+            <button class="btn" id="backToEditBtn">← Back to items</button>
+          </div>
+          <div class="row">
+            <button class="btn" id="copyListBtn">Copy</button>
+            <button class="btn" id="downloadCsvBtn">Download CSV</button>
+            <button class="btn primary" id="printBtn">Print</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reset confirmation -->
+    <div id="resetModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+      <div class="modal-card">
+        <h3 id="resetTitle">Reset all progress?</h3>
+        <p class="warn">Caution — resetting will delete your current progress and return to the beginning.</p>
+        <div class="row" style="justify-content:flex-end;">
+          <button class="btn ghost" id="cancelResetBtn">Cancel</button>
+          <button class="btn primary" id="confirmResetBtn">Reset everything</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="mini"><strong>Dev State:</strong> <code id="devState">{}</code></div>
+  </footer>
+
+
+    <script>
+    // --- Master Food Lists (16 × 4 each) ---------------------------------
+    const MASTER = {
+      vegetables: {
+        leafy: [
+          "Spinach","Romaine lettuce","Kale","Green leaf lettuce",
+          "Red leaf lettuce","Butter/Bibb lettuce","Collard greens","Swiss chard",
+          "Bean sprouts","Other greens","Endive","Escarole/Frisee",
+          "Other sprouts","Watercress","Seaweed/Nori","Kelp"
+        ],
+        cruciferous: [
+          "Broccoli","Cauliflower","Green cabbage","Red cabbage",
+          "Brussel sprouts","Bok choy","Arugula","Radishes",
+          "Turnips","Rutabaga","Savoy cabbage","Napa cabbage",
+          "Broccolini","Daikon","Kohlrabi","Broccoli raab/Rapini"
+        ],
+        orange: [
+          "Carrots","Sweet potatoes","Yams","Tomatoes",
+          "Red bell peppers","Orange bell peppers","Red beets","Butternut squash",
+          "Acorn squash","Pumpkin","Spaghetti squash","Golden beets",
+          "Purple sweet potatoes/Ube","Delicata squash","Kabocha squash","Hubbard squash"
+        ],
+        other: [
+          "Zucchini","Cucumbers","Celery","Green beans",
+          "Corn","White mushrooms","Brown mushrooms","Asparagus",
+          "Snap/Shelled peas","Snow peas","Eggplant","Parsnips",
+          "Leeks","Fennel","Okra","Artichokes"
+        ],
+      },
+      fruits: {
+        berries: [
+          "Strawberries","Blueberries","Raspberries","Blackberries",
+          "Red/Black grapes","Green grapes","Cherries","Cranberries",
+          "Guava","Pomegranate","Figs","Plums",
+          "Passionfruit","Mulberries","Prickly pear","Lychee"
+        ],
+        citrus: [
+          "Oranges","Mandarins","Tangerines","Clementines",
+          "Lemons","Limes","Pink grapefruit","White grapefruit",
+          "Minneola tangelos","Kumquats","Blood oranges","Pineapple",
+          "Pomelos","Starfruit","Ugli fruit","Buddha's hand"
+        ],
+        carotenoid_lycopene: [
+          "Watermelon","Cantaloupe","Peaches","Nectarines",
+          "Mangoes (large)","Mangoes (small)","Papaya","Apricots",
+          "Cherry/Grape tomatoes","Persimmons","Galia melon","Canary melon",
+          "Jackfruit","Mamey sapote","Nance","Horned melon"
+        ],
+        other: [
+          "Bananas","Red apples","Green apples","Yellow apples",
+          "Avocados","Pears","Kiwi","Coconut",
+          "Honeydew melon","Dates","Plantains","Dragonfruit (pitaya)",
+          "Tamarind","Pawpaws","Soursop/Guanabana","Asian pears"
+        ]
+      }
+    };
+    
+    // --- Master Protein Lists (16 × 4) -----------------------------------
+    const PROTEINS = {
+      legumes_pulses: [
+        "Black beans","Pinto beans","Kidney beans","Chickpeas/Garbanzo beans",
+        "Navy beans","Brown lentils","Red lentils","Green lentils",
+        "Yellow split peas","Green split peas","Peanuts","Lima/Butter beans",
+        "Black-eyed peas","Fava beans","Mung beans","Adzuki beans"
+      ],
+      complete: [
+        "Soft/Firm tofu","Tempeh","Edamame","Hemp hearts/seeds",
+        "Quinoa","Amaranth","Buckwheat/Soba","Chia seeds",
+        "Wild rice/Manoomin","Textured Vegetable Protein (TVP)","Seitan/Wheat-based meat","Eggs/Egg substitute",
+        "Chicken/Turkey/Plant poultry","Cow meat/Plant beef","Pig meat/Plant pork","Lamb/Goat/Other meats"
+      ],
+      dairy: [
+        "Soy milk","Oat milk","Hazelnut milk","Almond milk",
+        "Cashew milk","Hemp/Flax milk","Rice milk","Coconut milk",
+        "Lactated cow/goat/sheep milk","Yogurt/Kefir","Cream cheese","Soft aged/crumbly cheese",
+        "Sour cream","Cottage cheese","Hard cheeses","Soft fresh cheeses"
+      ],
+      seafood: [
+        "Salmon","Tuna","Tilapia","Shrimp",
+        "Cod/Pollock","Trout","Crab","Clams",
+        "Oysters","Scallops","Crawfish","Mussels",
+        "Sardines/Anchovies","Mackerel","Lobster","Catfish"
+      ]
+    };
+    
+    // --- Master Grains / Roots / Seeds Lists (16 × 4) -------------------------
+    const GRAINS_ROOTS = {
+      grasses: [
+        "Wheat","Pasta","White rice","Brown rice",
+        "Cornmeal","Oats","Couscous","Quinoa",
+        "Millet","Amaranth","Buckwheat/Soba","Wild rice/Manoomin",
+        "Rye","Kamut","Barley","Sorghum"
+      ],
+      nuts_seeds: [
+        "Almonds","Walnuts","Pecans","Cashews",
+        "Pistachios","Sunflower seeds","Sesame seeds/Tahini","Pumpkin seeds (pepitas)",
+        "Flax seeds","Chia seeds","Hemp hearts/seeds","Hazelnuts",
+        "Macadamia nuts","Brazil nuts","Pine nuts","Poppy seeds"
+      ],
+      roots_tubers: [
+        "Russet potatoes","Red potatoes","Yukon Gold potatoes","Fingerling potatoes",
+        "Purple potatoes","Sweet potatoes","Yams","Plantains",
+        "Cassava (yuca/tapioca/fufu)","Taro","Rutabaga","Turnips",
+        "Parsnips","White/Golden sweet potatoes (boniato)","Purple sweet potatoes/Ube","Arrowroot"
+      ],
+      oils_fats: [
+        "Olive oil","Soy oil","Canola oil","Coconut oil",
+        "Peanut oil","Avocado oil","Sesame oil","Flaxseed oil",
+        "Walnut oil","Sunflower oil","Safflower oil","Grapeseed oil",
+        "Palm oil","Butter/Plant butter","Lard/Tallow (traditional use)","Ghee/Plant ghee"
+      ]
+    };
+    
+    // --- Center Ring: Flavor & Health Enhancers (16 × 4) -----------------
+    const FLAVOR_CENTER = {
+      flavor_vegetables: [
+        "Garlic","Yellow onions","Red onions","White onions",
+        "Pearl onions","Shallots","Green onions/Scallions","Chives",
+        "Jalapeños/Chipotle peppers","Serrano/Seco chiles","Habaneros","Poblano/Ancho chiles",
+        "Mirasol/Guajillo chiles","Chile de Árbol","Cayenne chiles","Anaheim/Colorado chilies"
+      ],
+      fresh_herbs: [
+        "Curly parsley","Flat-leaf/Italian parsley","Cilantro/Coriander leaf",
+        "Peppermint","Spearmint","Lemon balm","Sweet basil","Thai basil",
+        "Holy basil/Tulsi","Sage","Oregano","Thyme",
+        "Dill","Epazote","Lemongrass","Chervil"
+      ],
+      dried_spices: [
+        "Rosemary","Bay leaf","Marjoram","Paprika",
+        "Fennel seeds","Tarragon","Allspice","Pepper",
+        "Cumin","Coriander seed","Turmeric","Ginger",
+        "Cinnamon","Nutmeg","Cloves","Cardamom"
+      ],
+      boosters: [
+        "Honey","Maple syrup","Agave nectar","Molasses",
+        "Kimchi/Sauerkraut","Vinegars","Olives","Miso",
+        "Green tea","Black tea","Coffee","Yerba mate",
+        "Dark chocolate (70%+)","Cacao nibs/Cocoa powder","Dried fruits","Herbal teas/Kombucha"
+      ]
+    };
+
+
+    // ===== VEG IMAGE MAP (name -> relative path) =====
+    const VEG_IMG = {
+      // --- Leafy ---
+      "Spinach": "assets/vegetables/leafy/spinach.png",
+      "Romaine lettuce": "assets/vegetables/leafy/romaine.png",
+      "Kale": "assets/vegetables/leafy/kale.png",
+      "Green leaf lettuce": "assets/vegetables/leafy/greenleaf.png",
+      "Red leaf lettuce": "assets/vegetables/leafy/redleaf.png",
+      "Butter/Bibb lettuce": "assets/vegetables/leafy/bibb.png",
+      "Collard greens": "assets/vegetables/leafy/collards.png",
+      "Swiss chard": "assets/vegetables/leafy/chard.png",
+      "Bean sprouts": "assets/vegetables/leafy/beansprouts.png",
+      "Other greens": "assets/vegetables/leafy/greens.png",
+      "Endive": "assets/vegetables/leafy/endive.png",
+      "Escarole/Frisee": "assets/vegetables/leafy/escarole.png",
+      "Other sprouts": "assets/vegetables/leafy/sprouts.png",
+      "Watercress": "assets/vegetables/leafy/watercress.png",
+      "Seaweed/Nori": "assets/vegetables/leafy/seaweed.png",
+      "Kelp": "assets/vegetables/leafy/kelp.png",
+    
+      // --- Cruciferous ---
+      "Broccoli": "assets/vegetables/cruciferous/broccoli.png",
+      "Cauliflower": "assets/vegetables/cruciferous/cauliflower.png",
+      "Green cabbage": "assets/vegetables/cruciferous/greencabbage.png",
+      "Red cabbage": "assets/vegetables/cruciferous/redcabbage.png",
+      "Brussel sprouts": "assets/vegetables/cruciferous/brusselsprouts.png", // filename uses 'brussels'
+      "Bok choy": "assets/vegetables/cruciferous/bokchoy.png",
+      "Arugula": "assets/vegetables/cruciferous/arugula.png",
+      "Radishes": "assets/vegetables/cruciferous/radishes.png",
+      "Turnips": "assets/vegetables/cruciferous/turnips.png",
+      "Rutabaga": "assets/vegetables/cruciferous/rutabaga.png",
+      "Savoy cabbage": "assets/vegetables/cruciferous/savoycabbage.png",
+      "Napa cabbage": "assets/vegetables/cruciferous/napacabbage.png",
+      "Broccolini": "assets/vegetables/cruciferous/broccolini.png",
+      "Daikon": "assets/vegetables/cruciferous/daikon.png",
+      "Kohlrabi": "assets/vegetables/cruciferous/kohlrabi.png",
+      "Broccoli raab/Rapini": "assets/vegetables/cruciferous/rapini.png",
+    
+      // --- Orange ---
+      "Carrots": "assets/vegetables/orange/carrots.png",
+      "Sweet potatoes": "assets/vegetables/orange/sweetpotato.png",
+      "Yams": "assets/vegetables/orange/yam.png",
+      "Tomatoes": "assets/vegetables/orange/tomatoes.jpg", // your file is .jpg
+      "Red bell peppers": "assets/vegetables/orange/redpepper.png",
+      "Orange bell peppers": "assets/vegetables/orange/yellowpepper.png", // using your yellow pepper art
+      "Red beets": "assets/vegetables/orange/beet.png",
+      "Butternut squash": "assets/vegetables/orange/butternutsquash.png",
+      "Acorn squash": "assets/vegetables/orange/acornsquash.png",
+      "Pumpkin": "assets/vegetables/orange/pumpkin.png",
+      "Spaghetti squash": "assets/vegetables/orange/spaghettisquash.png",
+      "Golden beets": "assets/vegetables/orange/goldenbeet.png",
+      "Purple sweet potatoes/Ube": "assets/vegetables/orange/ube.png",
+      "Delicata squash": "assets/vegetables/orange/delicatasquash.png",
+      "Kabocha squash": "assets/vegetables/orange/kabochasquash.png",
+      "Hubbard squash": "assets/vegetables/orange/hubbardsquash.png",
+    
+      // --- Other ---
+      "Zucchini": "assets/vegetables/other/zucchini.png",
+      "Cucumbers": "assets/vegetables/other/cucumber.png",
+      "Celery": "assets/vegetables/other/celery.png",
+      "Green beans": "assets/vegetables/other/greenbeans.png",
+      "Corn": "assets/vegetables/other/corn.png",
+      "White mushrooms": "assets/vegetables/other/whitemushrooms.png",
+      "Brown mushrooms": "assets/vegetables/other/brownmushrooms.png",
+      "Asparagus": "assets/vegetables/other/asparagus.png",
+      "Snap/Shelled peas": "assets/vegetables/other/peas.png",
+      "Snow peas": "assets/vegetables/other/snowpeas.png",
+      "Eggplant": "assets/vegetables/other/eggplant.png",
+      "Parsnips": "assets/vegetables/other/parsnips.png",
+      "Leeks": "assets/vegetables/other/leeks.png",
+      "Fennel": "assets/vegetables/other/fennel.png",
+      "Okra": "assets/vegetables/other/okra.png",
+      "Artichokes": "assets/vegetables/other/artichoke.png" // plural name, singular file
+    };
+
+    
+    
+    // ===== FRUIT IMAGE MAP (name -> relative path under /assets/fruits) =====
+    const FRUIT_IMG = {
+      // --- BERRIES ---
+      "Blackberries": "assets/fruits/berries/blackberries.png",
+      "Blueberries": "assets/fruits/berries/blueberries.png",
+      "Prickly pear": "assets/fruits/berries/cactusfruit.png",
+      "Cherries": "assets/fruits/berries/cherries.png",
+      "Cranberries": "assets/fruits/berries/cranberries.png",
+      "Figs": "assets/fruits/berries/figs.png",
+      "Green grapes": "assets/fruits/berries/greengrapes.png",
+      "Guava": "assets/fruits/berries/guava.png",
+      "Lychee": "assets/fruits/berries/lychee.png",
+      "Mulberries": "assets/fruits/berries/mulberries.png",
+      "Passionfruit": "assets/fruits/berries/passionsfruit.png",   // if your file is named passionfruit.png, use that
+      "Plums": "assets/fruits/berries/plums.png",
+      "Pomegranate": "assets/fruits/berries/pomegranate.png",
+      "Raspberries": "assets/fruits/berries/raspberries.png",
+      "Red/Black grapes": "assets/fruits/berries/redgrapes.png",
+      "Strawberries": "assets/fruits/berries/strawberries.png",
+    
+      // --- CITRUS ---
+      "Blood oranges": "assets/fruits/citrus/bloodoranges.png",
+      "Buddha's hand": "assets/fruits/citrus/buddhashand.png",
+      "Clementines": "assets/fruits/citrus/clementines.png",
+      "Kumquats": "assets/fruits/citrus/kumquats.png",
+      "Lemons": "assets/fruits/citrus/lemons.png",
+      "Limes": "assets/fruits/citrus/limes.png",
+      "Mandarins": "assets/fruits/citrus/mandarins.png",
+      "Minneola tangelos": "assets/fruits/citrus/minneolas.png",
+      "Oranges": "assets/fruits/citrus/oranges.png",
+      "Pineapple": "assets/fruits/citrus/pineapple.png",
+      "Pink grapefruit": "assets/fruits/citrus/pinkgrapefruit.png",
+      "Pomelos": "assets/fruits/citrus/pomelos.png",
+      "Starfruit": "assets/fruits/citrus/starfruit.png",
+      "Tangerines": "assets/fruits/citrus/tangerines.png",
+      "Ugli fruit": "assets/fruits/citrus/uglifruit.png",
+      "White grapefruit": "assets/fruits/citrus/whitegrapefruit.png",
+    
+      // --- ORANGE / RED (carotenoid_lycopene) ---
+      "Apricots": "assets/fruits/orangered/apricots.png",
+      "Canary melon": "assets/fruits/orangered/canarymelon.png",
+      "Cantaloupe": "assets/fruits/orangered/cantaloupe.png",
+      "Cherry/Grape tomatoes": "assets/fruits/orangered/cherrytomatoes.png",
+      "Galia melon": "assets/fruits/orangered/galiamelon.png",
+      "Horned melon": "assets/fruits/orangered/hornedmelon.png",
+      "Jackfruit": "assets/fruits/orangered/jackfruit.png",
+      "Mamey sapote": "assets/fruits/orangered/mamey.png",
+      "Mangoes (large)": "assets/fruits/orangered/mangolarge.png",
+      "Mangoes (small)": "assets/fruits/orangered/mangosmall.png",
+      "Nance": "assets/fruits/orangered/nance.png",
+      "Nectarines": "assets/fruits/orangered/nectarines.png",
+      "Papaya": "assets/fruits/orangered/papaya.png",
+      "Peaches": "assets/fruits/orangered/peaches.png",
+      "Persimmons": "assets/fruits/orangered/persimmons.png",
+      "Watermelon": "assets/fruits/orangered/watermelon.png",
+    
+      // --- OTHER ---
+      "Asian pears": "assets/fruits/otherfruit/asianpears.png",
+      "Avocados": "assets/fruits/otherfruit/avocados.png",
+      "Bananas": "assets/fruits/otherfruit/bananas.png",
+      "Coconut": "assets/fruits/otherfruit/coconuts.png",
+      "Dates": "assets/fruits/otherfruit/dates.png",
+      "Dragonfruit (pitaya)": "assets/fruits/otherfruit/dragonfruit.png",
+      "Green apples": "assets/fruits/otherfruit/greenapple.png",
+      "Soursop/Guanabana": "assets/fruits/otherfruit/guanabana.png",
+      "Honeydew melon": "assets/fruits/otherfruit/honeydew.png",
+      "Kiwi": "assets/fruits/otherfruit/kiwi.png",
+      "Pawpaws": "assets/fruits/otherfruit/pawpaws.png",
+      "Pears": "assets/fruits/otherfruit/pears.png",
+      "Plantains": "assets/fruits/otherfruit/plantains.png",
+      "Red apples": "assets/fruits/otherfruit/redapple.png",
+      "Tamarind": "assets/fruits/otherfruit/tamarind.png",
+      "Yellow apples": "assets/fruits/otherfruit/yellowapple.png"
+    };
+        
+    // ===== PROTEIN IMAGE MAP (name -> relative path) =====
+    const PROTEIN_IMG = {
+      // ---- Legumes & pulses ----
+      "Adzuki beans": "assets/protein/legumes/adzukibeans.png", // your file name is "adzukibeans"
+      "Black beans": "assets/protein/legumes/blackbeans.png",
+      "Black-eyed peas": "assets/protein/legumes/blackeyedpeas.png",
+      "Brown lentils": "assets/protein/legumes/brownlentils.png",
+      "Chickpeas/Garbanzo beans": "assets/protein/legumes/chickpeas.png",
+      "Fava beans": "assets/protein/legumes/favabeans.png",
+      "Green lentils": "assets/protein/legumes/greenlentils.png",
+      "Green split peas": "assets/protein/legumes/greensplitpeas.png",
+      "Kidney beans": "assets/protein/legumes/kidneybeans.png",
+      "Lima/Butter beans": "assets/protein/legumes/limabeans.png",
+      "Mung beans": "assets/protein/legumes/mungbeans.png",
+      "Navy beans": "assets/protein/legumes/navybeans.png",
+      "Peanuts": "assets/protein/legumes/peanuts.png",
+      "Pinto beans": "assets/protein/legumes/pintobeans.png",
+      "Red lentils": "assets/protein/legumes/redlentils.png",
+      "Yellow split peas": "assets/protein/legumes/yellowsplitpeas.png",
+    
+      // ---- Complete proteins ----
+      "Amaranth": "assets/protein/complete/amaranth.png",
+      "Buckwheat/Soba": "assets/protein/complete/buckwheat.png",
+      "Chia seeds": "assets/protein/complete/chiaseeds.png",
+      "Chicken/Turkey/Plant poultry": "assets/protein/complete/chicken.png",
+      "Cow meat/Plant beef": "assets/protein/complete/cowmeat.png",
+      "Edamame": "assets/protein/complete/edamame.png",
+      "Eggs/Egg substitute": "assets/protein/complete/eggs.png",
+      "Hemp hearts/seeds": "assets/protein/complete/hemphearts.png",
+      "Lamb/Goat/Other meats": "assets/protein/complete/lamb.png",
+      "Pig meat/Plant pork": "assets/protein/complete/pigmeat.png",
+      "Quinoa": "assets/protein/complete/quinoa.png",
+      "Seitan/Wheat-based meat": "assets/protein/complete/seitan.png",
+      "Soft/Firm tofu": "assets/protein/complete/tofu.png",
+      "Tempeh": "assets/protein/complete/tempeh.png",
+      "Textured Vegetable Protein (TVP)": "assets/protein/complete/tvp.png",
+      "Wild rice/Manoomin": "assets/protein/complete/wildrice.png",
+    
+      // ---- Dairy (animal & plant) ----
+      "Almond milk": "assets/protein/dairy/almondmilk.png",
+      "Cashew milk": "assets/protein/dairy/cashewmilk.png",
+      "Coconut milk": "assets/protein/dairy/coconutmilk.png",
+      "Cottage cheese": "assets/protein/dairy/cottagecheese.png",
+      "Cream cheese": "assets/protein/dairy/creamcheese.png",
+      "Hazelnut milk": "assets/protein/dairy/hazelnutmilk.png",
+      "Hemp/Flax milk": "assets/protein/dairy/hempmilk.png",   // you have hempmilk; no separate flax image
+      "Hard cheeses": "assets/protein/dairy/hardcheese.png",
+      "Lactated cow/goat/sheep milk": "assets/protein/dairy/lactatedmilk.png",
+      "Oat milk": "assets/protein/dairy/oatmilk.png",
+      "Rice milk": "assets/protein/dairy/ricemilk.png",
+      "Soft aged/crumbly cheese": "assets/protein/dairy/crumblycheese.png",
+      "Soft fresh cheeses": "assets/protein/dairy/softcheese.png",
+      "Sour cream": "assets/protein/dairy/sourcream.png",
+      "Soy milk": "assets/protein/dairy/soymilk.png",
+      "Yogurt/Kefir": "assets/protein/dairy/yogurt.png",
+    
+      // ---- Seafood ----
+      "Anchovies": "assets/protein/seafood/anchovies.png", // helper will fall back to this when needed
+      "Catfish": "assets/protein/seafood/catfish.png",
+      "Clams": "assets/protein/seafood/clams.png",
+      "Cod/Pollock": "assets/protein/seafood/cod.png",
+      "Crab": "assets/protein/seafood/crab.png",
+      "Crawfish": "assets/protein/seafood/crawfish.png",
+      "Lobster": "assets/protein/seafood/lobster.png",
+      "Mackerel": "assets/protein/seafood/mackerel.png",
+      "Mussels": "assets/protein/seafood/mussels.png",
+      "Oysters": "assets/protein/seafood/oysters.png",
+      "Salmon": "assets/protein/seafood/salmon.png",
+      "Scallops": "assets/protein/seafood/scallops.png",
+      "Shrimp": "assets/protein/seafood/shrimp.png",
+      "Tilapia": "assets/protein/seafood/tilapia.png",
+      "Trout": "assets/protein/seafood/trout.png",
+      "Tuna": "assets/protein/seafood/tuna.png",
+    
+      // alias for combined label in your data
+      "Sardines/Anchovies": "assets/protein/seafood/anchovies.png"
+    };
+
+    // ===== CALORIES IMAGE MAP (name -> relative path) =====
+    // covers: Grains, Roots (tubers), Nuts & Seeds, Oils & Fats
+    const CAL_IMG = {
+      // --- Grains ---
+      "Amaranth":      "assets/calories/grains/amaranth.png",
+      "Barley":        "assets/calories/grains/barley.png",
+      "Brown rice":    "assets/calories/grains/brownrice.png",
+      "Buckwheat":     "assets/calories/grains/buckwheat.png",
+      "Cornmeal":      "assets/calories/grains/cornmeal.png",
+      "Couscous":      "assets/calories/grains/couscous.png",
+      "Kamut":         "assets/calories/grains/kamut.png",
+      "Millet":        "assets/calories/grains/millet.png",
+      "Oats":          "assets/calories/grains/oats.png",
+      "Pasta":         "assets/calories/grains/pasta.png",
+      "Quinoa":        "assets/calories/grains/quinoa.png",
+      "Rye":           "assets/calories/grains/rye.png",
+      "Sorghum":       "assets/calories/grains/sorghum.png",
+      "Wheat bread":   "assets/calories/grains/wheatbread.png",
+      "White rice":    "assets/calories/grains/whiterice.png",
+      "Wild rice":     "assets/calories/grains/wildrice.png",
+    
+      // --- Roots / Tubers ---
+      "Arrowroot":         "assets/calories/roots/arrowroot.png",
+      "Boniatos":          "assets/calories/roots/boniatos.png",
+      "Fingerling potatoes":"assets/calories/roots/fingerlings.png",
+      "Fufu":              "assets/calories/roots/fufu.png",
+      "Parsnips":          "assets/calories/roots/parsnips.png",
+      "Plantains":         "assets/calories/roots/plantains.png",
+      "Purple potatoes":   "assets/calories/roots/purplepotatoes.png",
+      "Red potatoes":      "assets/calories/roots/redpotatoes.png",
+      "Russets":           "assets/calories/roots/russets.png",
+      "Rutabaga":          "assets/calories/roots/rutabaga.png",
+      "Sweet potatoes":    "assets/calories/roots/sweetpotatoes.png",
+      "Taro":              "assets/calories/roots/taro.png",
+      "Turnips":           "assets/calories/roots/turnips.png",
+      "Ube":               "assets/calories/roots/ube.png",
+      "Yams":              "assets/calories/roots/yams.png",
+      "Yukon gold":        "assets/calories/roots/yukongold.png",
+    
+      // --- Nuts & Seeds ---
+      "Almonds":        "assets/calories/nutsseeds/almonds.png",
+      "Brazil nuts":    "assets/calories/nutsseeds/brazilnuts.png",
+      "Cashews":        "assets/calories/nutsseeds/cashews.png",
+      "Chia seeds":     "assets/calories/nutsseeds/chiaseeds.png",
+      "Flax seeds":     "assets/calories/nutsseeds/flaxseeds.png",
+      "Hazelnuts":      "assets/calories/nutsseeds/hazelnuts.png",
+      "Hemp hearts":    "assets/calories/nutsseeds/hemphearts.png",
+      "Macadamia nuts": "assets/calories/nutsseeds/macadamianuts.png",
+      "Pecans":         "assets/calories/nutsseeds/pecans.png",
+      "Pine nuts":      "assets/calories/nutsseeds/pinenuts.png",
+      "Pistachios":     "assets/calories/nutsseeds/pistachios.png",
+      "Poppy seeds":    "assets/calories/nutsseeds/poppyseeds.png",
+      "Pumpkin seeds":  "assets/calories/nutsseeds/pumpkinseeds.png",
+      "Sesame seeds":   "assets/calories/nutsseeds/sesameseeds.png",
+      "Sunflower seeds":"assets/calories/nutsseeds/sunflowerseeds.png",
+      "Walnuts":        "assets/calories/nutsseeds/walnuts.png",
+    
+      // --- Oils & Fats ---
+      "Avocado oil":   "assets/calories/oilsfats/avocadooil.png",
+      "Butter":        "assets/calories/oilsfats/butter.png",
+      "Canola oil":    "assets/calories/oilsfats/canolaoil.png",
+      "Coconut oil":   "assets/calories/oilsfats/coconutoil.png",
+      "Flaxseed oil":  "assets/calories/oilsfats/flaxseedoil.png",
+      "Ghee":          "assets/calories/oilsfats/ghee.png",
+      "Grapeseed oil": "assets/calories/oilsfats/grapeseedoil.png",
+      "Lard":          "assets/calories/oilsfats/lard.png",
+      "Olive oil":     "assets/calories/oilsfats/oliveoil.png",
+      "Palm oil":      "assets/calories/oilsfats/palmoil.png",
+      "Peanut oil":    "assets/calories/oilsfats/peanutoil.png",
+      "Safflower oil": "assets/calories/oilsfats/saffloweroil.png",
+      "Sesame oil":    "assets/calories/oilsfats/seasameoil.png", // filename spelled 'seasameoil' in your folder
+      "Soy oil":       "assets/calories/oilsfats/soyoil.png",
+      "Sunflower oil": "assets/calories/oilsfats/sunfloweroil.png",
+      "Walnut oil":    "assets/calories/oilsfats/walnutoil.png"
+    };
+
+
+    // ===== FLAVOR IMAGE MAP (name -> relative path under /assets/flavor) =====
+    const FLAVOR_IMG = {
+      // --- Flavor Veggies ---
+      "Anaheim": "assets/flavor/flavorveg/anaheim.png",
+      "Cayenne": "assets/flavor/flavorveg/cayenne.png",
+      "Chile de árbol": "assets/flavor/flavorveg/chiledearbol.png",
+      "Chives": "assets/flavor/flavorveg/chives.png",
+      "Garlic": "assets/flavor/flavorveg/garlic.png",
+      "Green onions": "assets/flavor/flavorveg/greenonions.png",
+      "Guajillo": "assets/flavor/flavorveg/guajillo.png",
+      "Habanero": "assets/flavor/flavorveg/habanero.png",
+      "Jalapeño": "assets/flavor/flavorveg/jalapeno.png",
+      "Pearl onions": "assets/flavor/flavorveg/pearlonions.png",
+      "Poblano": "assets/flavor/flavorveg/poblano.png",
+      "Red onions": "assets/flavor/flavorveg/redonions.png",
+      "Serrano": "assets/flavor/flavorveg/serrano.png",
+      "Shallots": "assets/flavor/flavorveg/shallots.png",
+      "White onions": "assets/flavor/flavorveg/whiteonions.png",
+      "Yellow onions": "assets/flavor/flavorveg/yellowonions.png",
+    
+      // --- Fresh Herbs ---
+      "Chervil": "assets/flavor/freshherbs/chervil.png",
+      "Cilantro": "assets/flavor/freshherbs/cilantro.png",
+      "Curly parsley": "assets/flavor/freshherbs/curlyparsley.png",
+      "Dill": "assets/flavor/freshherbs/dill.png",
+      "Epazote": "assets/flavor/freshherbs/epazote.png",
+      "Flat parsley": "assets/flavor/freshherbs/flatparsley.png",
+      "Holy basil": "assets/flavor/freshherbs/holybasil.png",
+      "Lemon balm": "assets/flavor/freshherbs/lemonbalm.png",
+      "Lemongrass": "assets/flavor/freshherbs/lemongrass.png",
+      "Oregano": "assets/flavor/freshherbs/oregano.png",
+      "Peppermint": "assets/flavor/freshherbs/peppermint.png",
+      "Sage": "assets/flavor/freshherbs/sage.png",
+      "Spearmint": "assets/flavor/freshherbs/spearmint.png",
+      "Sweet basil": "assets/flavor/freshherbs/sweetbasil.png",
+      "Thai basil": "assets/flavor/freshherbs/thaibasil.png",
+      "Thyme": "assets/flavor/freshherbs/thyme.png",
+    
+      // --- Dried Spices ---
+      "Allspice": "assets/flavor/spices/allspice.png",
+      "Bay leaves": "assets/flavor/spices/bayleaves.png",
+      "Cardamom": "assets/flavor/spices/cardamom.png",
+      "Cinnamon": "assets/flavor/spices/cinnamon.png",
+      "Cloves": "assets/flavor/spices/cloves.png",
+      "Coriander": "assets/flavor/spices/coriander.png",
+      "Cumin": "assets/flavor/spices/cumin.png",
+      "Fennel seed": "assets/flavor/spices/fennel.png",
+      "Ginger": "assets/flavor/spices/ginger.png",
+      "Marjoram": "assets/flavor/spices/marjoram.png",
+      "Nutmeg": "assets/flavor/spices/nutmeg.png",
+      "Paprika": "assets/flavor/spices/paprika.png",
+      "Pepper": "assets/flavor/spices/pepper.png",
+      "Rosemary": "assets/flavor/spices/rosemary.png",
+      "Tarragon": "assets/flavor/spices/tarragon.png",
+      "Turmeric": "assets/flavor/spices/turmeric.png",
+    
+      // --- Flavor: Other ---
+      "Agave syrup": "assets/flavor/other/agavesyrup.png",
+      "Black tea": "assets/flavor/other/blacktea.png",
+      "Cacao": "assets/flavor/other/cacao.png",
+      "Coffee": "assets/flavor/other/coffee.png",
+      "Dark chocolate": "assets/flavor/other/darkchocolate.png",
+      "Dried fruit": "assets/flavor/other/driedfruit.png",
+      "Green tea": "assets/flavor/other/greentea.png",
+      "Herbal tea": "assets/flavor/other/herbaltea.png",
+      "Honey": "assets/flavor/other/honey.png",
+      "Kimchi": "assets/flavor/other/kimchi.png",
+      "Maple syrup": "assets/flavor/other/maplesyrup.png",
+      "Miso": "assets/flavor/other/miso.png",
+      "Molasses": "assets/flavor/other/molasses.png",
+      "Olives": "assets/flavor/other/olives.png",
+      "Vinegar": "assets/flavor/other/vinegar.png",
+      "Yerba maté": "assets/flavor/other/yerbamate.png"
+    };
+    
+        
+    // === PATCH A: image registries (drop-in replacement) ===
+    const IMG_MAPS = {
+      vegetables: VEG_IMG,
+      fruits:     FRUIT_IMG,
+      protein:    PROTEIN_IMG,
+      proteins:   PROTEIN_IMG,   // alias
+      calories:   CAL_IMG,       // covers grains/roots/oils/fats
+      grains:     CAL_IMG,       // alias
+      flavor:     FLAVOR_IMG,
+      center:     FLAVOR_IMG     // alias
+    };
+    
+    function getImgFor(catKey, _subKey, name){
+      const map = IMG_MAPS[catKey];
+      return map ? (map[name] || null) : null;
+    }
+
+    // === PATCH B: data registries (new) ===
+    const DATA = {
+      vegetables: MASTER.vegetables,
+      fruits:     MASTER.fruits,
+      protein:    PROTEINS,
+      proteins:   PROTEINS,       // alias
+      calories:   GRAINS_ROOTS,   // alias for grains/roots/oils
+      grains:     GRAINS_ROOTS,   // alias
+      flavor:     FLAVOR_CENTER,
+      center:     FLAVOR_CENTER   // alias
+    };
+    
+    function getList(catKey, subKey){
+      const cat = DATA[catKey];
+      const list = cat && cat[subKey];
+      return Array.isArray(list) ? list : [];
+    }
+
+    // === PATCH C: renderer (new) ===
+    function renderSubcategory(catKey, subKey){
+      const items = getList(catKey, subKey);
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+    
+      items.forEach(name => {
+        const img = getImgFor(catKey, subKey, name);
+        const el = document.createElement('div');
+        el.className = 'cardlet';
+        el.innerHTML = `
+          ${img ? `<img class="pic" src="${img}" alt="">`
+                 : `<div class="pic" style="background:#eef;border:1px dashed #cfd9e6;"></div>`}
+          <div class="food-name">${name}</div>
+          <input type="number" class="qty" min="0" step="1" value="0">
+        `;
+        grid.appendChild(el);
+      });
+    
+      // chrome
+      const quota = document.getElementById('quotaPill');
+      if (quota) quota.textContent = `0 / ${items.length} chosen`;
+    }
+
+ 
+    // --- Cross-listed split rules: route portions to multiple subcategories ---
+    const SPLIT_RULES = {
+      // Vegetables ↔ Roots/Tubers
+      "Parsnips": [
+        { target: "other", weight: 0.5 },          // Vegetables → Other
+        { target: "roots_tubers", weight: 0.5 }    // Grains/Roots → Roots & Tubers
+      ],
+      "Rutabaga": [
+        { target: "cruciferous", weight: 0.5 },
+        { target: "roots_tubers", weight: 0.5 }
+      ],
+      "Turnips": [
+        { target: "cruciferous", weight: 0.5 },
+        { target: "roots_tubers", weight: 0.5 }
+      ],
+    
+      // Fruits ↔ Roots/Tubers
+      "Plantains": [
+        { target: "fruits.other", weight: 0.5 },   // Fruits → Other (see helper below)
+        { target: "roots_tubers", weight: 0.5 }
+      ],
+    
+      // Protein ↔ Grains (complete carbs)
+      "Quinoa": [
+        { target: "complete", weight: 0.5 },
+        { target: "grasses", weight: 0.5 }
+      ],
+      "Amaranth": [
+        { target: "complete", weight: 0.5 },
+        { target: "grasses", weight: 0.5 }
+      ],
+      "Buckwheat/Soba": [
+        { target: "complete", weight: 0.5 },
+        { target: "grasses", weight: 0.5 }
+      ],
+      "Chia seeds": [
+        { target: "complete", weight: 0.5 },
+        { target: "nuts_seeds", weight: 0.5 }
+      ],
+    };
+   
+    
+    // --- Grocery dropdown defaults (fallbacks; swap in your specific store choices later) ---
+    const CHOICES_DEFAULT = {
+      leafy: [
+        { label: "Fresh bunch (10 oz)", servings: 7 },         // ~9 c → ~7 serv
+        { label: "Pre-washed bag (8 oz)", servings: 6 },       // ~7 c → ~6 serv
+        { label: "Frozen chopped (12 oz)", servings: 8 }       // typical leafy 12 oz
+      ],
+      cruciferous: [
+        { label: "Fresh head (~24–32 oz)", servings: 8 },      // e.g., cauliflower head
+        { label: "Frozen florets (12 oz)", servings: 5 },      // 12 oz florets
+        { label: "Steam-bag (12 oz)", servings: 5 }
+      ],
+      orange: [
+        { label: "Fresh whole (medium)", servings: 1 },        // carrot, sweet potato, etc.
+        { label: "Frozen cubes (12 oz)", servings: 3 },
+        { label: "Canned (low-salt) (15 oz)", servings: 3 }
+      ],
+      other: [
+        { label: "Fresh (medium)", servings: 2 },              // tomato/cucumber avg
+        { label: "Frozen (12 oz)", servings: 3 },
+        { label: "Canned/Box (14.5–15 oz)", servings: 3 }
+      ],
+      berries: [
+        { label: "Fresh clamshell (8 oz)", servings: 3 },
+        { label: "Frozen bag (12 oz)", servings: 5 },
+        { label: "Dried (no sugar) (4–6 oz)", servings: 8 }    // ~½–1 Tbsp eq /serv
+      ],
+      citrus: [
+        { label: "Fresh (medium)", servings: 2 },              // oranges/lemons/limes ≈2 serv each
+        { label: "Juice (no sugar) (52–59 oz)", servings: 26 },// 8 oz = 4 serv (½c) → ~26 serv
+        { label: "Cups/bites (4 oz)", servings: 2 }
+      ],
+      carotenoid_lycopene: [
+        { label: "Fresh (medium)", servings: 2 },              // peach/nectarine/mango (lg=2)
+        { label: "Frozen (12–16 oz)", servings: 4 },           // 12–16 oz → 3–6; use 4 as default
+        { label: "Cups/bites (4 oz)", servings: 2 }
+      ],
+      legumes_pulses: [
+        { label: "Dry bag (16 oz)", servings: 24 },
+        { label: "Canned (15 oz)", servings: 6 }
+      ],
+      complete: [
+        { label: "Eggs/dozen (24 oz total)", servings: 12 },   // 1 egg = 1 serv
+        { label: "Tofu block (16 oz)", servings: 4 },
+        { label: "Tempeh pack (8–12 oz)", servings: 5 }
+      ],
+      dairy: [
+        { label: "Milk ½-gal (64 oz)", servings: 8 },          // 1 c = 1 serv
+        { label: "Yogurt 4-pack (24 oz)", servings: 4 },       // 4×6 oz = 4 serv
+        { label: "Cheese block (8 oz)", servings: 8 }          // 1 oz = 1 serv
+      ],
+      seafood: [
+        { label: "Canned (5 oz)", servings: 2 },
+        { label: "Frozen fillet (12 oz)", servings: 6 },
+        { label: "Fresh (8 oz)", servings: 4 }
+      ],
+      grasses: [
+        { label: "Brown rice bag (32 oz dry)", servings: 24 }, // ~12 c cooked → 24 serv
+        { label: "Oats canister (18 oz)", servings: 18 },      // per earlier mapping
+        { label: "Whole-grain pasta box (16 oz)", servings: 16 }
+      ],
+      nuts_seeds: [
+        { label: "Bulk nuts (16 oz)", servings: 44 },          // matches nut defaults above
+        { label: "Snack pack (1.5 oz)", servings: 4 },         // per-pack handy default
+        { label: "Seed bag (8–16 oz)", servings: 24 }          // 8 oz ≈ 24; 16 oz ≈ 48
+      ],
+      roots_tubers: [
+        { label: "Loose (medium)", servings: 1 },              // potato/sweet potato
+        { label: "Bagged (5 lb / 80 oz)", servings: 30 },      // 3 lb ≈18; 5 lb ≈30
+        { label: "Frozen (12 oz)", servings: 3 }
+      ],
+      oils_fats: [
+        { label: "Olive oil bottle (16 oz)", servings: 94 },   // ½ Tbsp per serv
+        { label: "Avocado oil bottle (16 oz)", servings: 94 },
+        { label: "Butter/Ghee tub (12 oz)", servings: 48 }
+      ],
+      flavor_vegetables: [
+        { label: "Garlic bulb (3 oz)", servings: 20 },         // ~10 cloves, ½ clove/serv
+        { label: "Onion bag (48 oz / 3 lb)", servings: 30 },   // ~30 × ¼ c
+        { label: "Pepper mix (12 oz frozen)", servings: 5 }
+      ],
+      fresh_herbs: [
+        { label: "Bunch (2 oz)", servings: 16 },               // 2 Tbsp per serv
+        { label: "Clamshell (1 oz)", servings: 8 },
+        { label: "Potted (live plant)", servings: 20 }         // nominal default
+      ],
+      dried_spices: [
+        { label: "Jar (1 oz)", servings: 55 },
+        { label: "Refill (3 oz)", servings: 165 },
+        { label: "Blend (1–2 oz)", servings: 80 }              // mid-range default
+      ],
+      boosters: [
+        { label: "Honey/Maple jar (8–12 oz)", servings: 57 },  // 12 oz ≈ 85; use 57 for 8–12 avg
+        { label: "Kimchi/Sauerkraut tub (16 oz)", servings: 16 }, // ¼ c = 1 serv
+        { label: "Tea/Coffee (20 ct / 12 oz)", servings: 20 }  // tea bags count; coffee 12 oz ≈ 68 (handled in specific)
+      ]
+    };
+
+
+    // Optionally override specific items like this:
+    // Exact grocery-size → servings labels. Each entry is {label, servings}.
+    
+    // ───────── Leafy & Salad Greens (ordered to match MASTER) ─────────
+    const CHOICES_SPECIFIC = {
+      "Spinach": [
+        { label:"Bag/clamshell 5 oz ≈ 5 cups → 3 servings",  servings:3 },
+        { label:"Clamshell 10 oz ≈ 10 cups → 7 servings",     servings:7 },
+        { label:"Frozen chopped 10 oz ≈ 10 cups → 7 servings", servings:7 },
+        { label:"Frozen chopped 16 oz ≈ 16 cups → 11 servings",servings:11 }
+      ],
+    
+      "Romaine lettuce": [
+        { label:"Heart ≈ 5 cups → 4 servings",                servings:4 },
+        { label:"3-pack hearts ≈ 15 cups → 12 servings",      servings:12 },
+        { label:"Chopped bag 10 oz ≈ 9 cups → 7 servings",    servings:7 }
+      ],
+    
+      "Kale": [
+        { label:"Bunch 8 oz ≈ 7 cups → 6 servings",           servings:6 },
+        { label:"Bag pre-chopped 10 oz ≈ 9 cups → 7 servings",servings:7 },
+        { label:"Frozen chopped 12 oz ≈ 10 cups → 8 servings",servings:8 }
+      ],
+    
+      "Green leaf lettuce": [
+        { label:"Head ≈ 8 cups → 6 servings",                 servings:6 },
+        { label:"Clamshell 10 oz ≈ 10 cups → 8 servings",     servings:8 },
+        { label:"Salad mix bag 5 oz ≈ 5 cups → 4 servings",   servings:4 }
+      ],
+    
+      "Red leaf lettuce": [
+        { label:"Head ≈ 8 cups → 6 servings",                 servings:6 },
+        { label:"Clamshell 10 oz ≈ 10 cups → 8 servings",     servings:8 },
+        { label:"Salad mix bag 5 oz ≈ 5 cups → 4 servings",   servings:4 }
+      ],
+    
+      "Butter/Bibb lettuce": [
+        { label:"Head ≈ 6 cups → 4 servings",                 servings:4 },
+        { label:"Living root lettuce ≈ 6 cups → 4 servings",  servings:4 },
+        { label:"Clamshell 8 oz ≈ 8 cups → 5 servings",       servings:5 }
+      ],
+    
+      "Collard greens": [
+        { label:"Bunch 8 oz ≈ 7 cups → 6 servings",           servings:6 },
+        { label:"Bag pre-chopped 12 oz ≈ 11 cups → 9 servings",servings:9 }
+      ],
+    
+      "Swiss chard": [
+        { label:"Bunch 8 oz ≈ 7 cups → 6 servings",           servings:6 },
+        { label:"Bag rainbow mix 10 oz ≈ 9 cups → 7 servings",servings:7 }
+      ],
+    
+      "Bean sprouts": [
+        { label:"Bag 12 oz ≈ 6 cups → 12 servings",           servings:12 },
+        { label:"Clamshell 8 oz ≈ 4 cups → 8 servings",       servings:8 }
+      ],
+    
+      "Other greens": [
+        { label:"Bunch 8 oz ≈ 7 cups → 6 servings",           servings:6 },
+        { label:"Bag chopped 10 oz ≈ 9 cups → 7 servings",    servings:7 }
+      ],
+    
+      "Endive": [
+        { label:"3-count pack ≈ 4 cups → 3 servings",         servings:3 },
+        { label:"6-count bag ≈ 8 cups → 6 servings",          servings:6 }
+      ],
+    
+      "Escarole/Frisee": [
+        { label:"Head ≈ 8 cups → 6 servings",                 servings:6 },
+        { label:"Bag chopped 10 oz ≈ 9 cups → 7 servings",    servings:7 }
+      ],
+    
+      "Other sprouts": [
+        { label:"Clamshell 5 oz ≈ 5 cups → 10 servings",      servings:10 },
+        { label:"Clamshell 3 oz ≈ 3 cups → 6 servings",       servings:6 }
+      ],
+    
+      "Watercress": [
+        { label:"Bunch ≈ 5 cups → 4 servings",                servings:4 },
+        { label:"Clamshell 4 oz ≈ 4 cups → 3 servings",       servings:3 }
+      ],
+    
+      "Seaweed/Nori": [
+        { label:"Pack 10 sheets → 10 servings",               servings:10 },
+        { label:"Pack 50 sheets → 50 servings",               servings:50 }
+      ],
+    
+      "Kelp": [
+        { label:"Dried pieces 2 oz ≈ 4 cups rehydrated → 8 servings", servings:8 },
+        { label:"Vacuum-pack 8 oz ≈ 2 cups rehydrated → 4 servings",   servings:4 },
+        { label:"Sushi-section clamshell 4 oz ≈ 1.5 cups → 3 servings",servings:3 }
+      ],
+    
+    // ───────── Cruciferous & Brassicas (ordered to match MASTER) ─────────
+      "Broccoli": [
+        { label:"Crown ≈ 3 cups → 4 servings",                servings:4 },
+        { label:"Bundle (3 crowns) ≈ 7 cups → 9 servings",    servings:9 },
+        { label:"Fresh chopped 12 oz ≈ 4 cups → 5 servings",  servings:5 },
+        { label:"Frozen florets 12 oz ≈ 4 cups → 5 servings", servings:5 }
+      ],
+    
+      "Cauliflower": [
+        { label:"Head ≈ 6 cups → 8 servings",                 servings:8 },
+        { label:"Fresh chopped 12 oz ≈ 4 cups → 5 servings",  servings:5 },
+        { label:"Frozen florets 12 oz ≈ 4 cups → 5 servings", servings:5 },
+        { label:"Riced 12 oz ≈ 4 cups → 5 servings",          servings:5 }
+      ],
+    
+      "Green cabbage": [
+        { label:"Small head 2 lb ≈ 11 cups → 22 servings",    servings:22 },
+        { label:"Medium head 2.6 lb ≈ 15 cups → 30 servings", servings:30 },
+        { label:"Shredded bag 8 oz ≈ 3 cups → 6 servings",    servings:6 }
+      ],
+    
+      "Red cabbage": [
+        { label:"Head 3 lb ≈ 16 cups → 32 servings",          servings:32 },
+        { label:"Shredded bag 8 oz ≈ 3 cups → 6 servings",    servings:6 }
+      ],
+    
+      "Brussel sprouts": [
+        { label:"Carton 1 lb ≈ 6 cups → 12 servings",         servings:12 },
+        { label:"Fresh bag 12 oz ≈ 4 cups → 8 servings",      servings:8 },
+        { label:"Frozen bag 12 oz ≈ 4 cups → 8 servings",     servings:8 }
+      ],
+    
+      "Bok choy": [
+        { label:"Baby bunch 1 lb ≈ 6 cups → 12 servings",     servings:12 },
+        { label:"Regular head 1.75 lb ≈ 10 cups → 20 servings", servings:20 },
+        { label:"Chopped bag 12 oz ≈ 4 cups → 8 servings",    servings:8 }
+      ],
+    
+      "Arugula": [
+        { label:"Clamshell/bag 5 oz ≈ 5 cups → 5 servings",   servings:5 },
+        { label:"Large clamshell 10 oz ≈ 10 cups → 10 servings", servings:10 }
+      ],
+    
+      "Radishes": [
+        { label:"Bunch (10–12) ≈ 2 cups → 4 servings",        servings:4 },
+        { label:"Bag trimmed 12 oz ≈ 3 cups → 6 servings",    servings:6 },
+        { label:"Pre-sliced bag 8 oz ≈ 2 cups → 4 servings",  servings:4 }
+      ],
+    
+      "Turnips": [
+        { label:"3-lb bag ≈ 8 cups → 10 servings",            servings:10 },
+        { label:"Loose medium ≈ 1 cup each → 1–2 servings",   servings:2 },
+        { label:"Pre-cubed tray 12 oz ≈ 3 cups → 4 servings", servings:4 }
+      ],
+    
+      "Rutabaga": [
+        { label:"Medium 2 lb ≈ 6 cups → 8 servings",          servings:8 },
+        { label:"Pre-cubed tray 12 oz ≈ 3 cups → 4 servings", servings:4 }
+      ],
+    
+      "Savoy cabbage": [
+        { label:"Head 2 lb ≈ 12 cups → 24 servings",          servings:24 },
+        { label:"Shredded bag 8 oz ≈ 3 cups → 6 servings",    servings:6 }
+      ],
+    
+      "Napa cabbage": [
+        { label:"Head 2 lb ≈ 10 cups → 20 servings",          servings:20 },
+        { label:"Shaved bag 12 oz ≈ 4 cups → 8 servings",     servings:8 }
+      ],
+    
+      "Broccolini": [
+        { label:"Bunch 8 oz ≈ 3 cups → 4 servings",           servings:4 },
+        { label:"Twin-pack 1 lb ≈ 6 cups → 8 servings",       servings:8 }
+      ],
+    
+      "Daikon": [
+        { label:"Root 2 lb ≈ 7 cups → 9 servings",            servings:9 },
+        { label:"Pre-cut sticks 12 oz ≈ 4 cups → 5 servings", servings:5 }
+      ],
+    
+      "Kohlrabi": [
+        { label:"3 bulbs 2 lb ≈ 7 cups → 9 servings",         servings:9 },
+        { label:"Slaw tray 12 oz ≈ 4 cups → 5 servings",      servings:5 }
+      ],
+    
+      "Broccoli raab/Rapini": [
+        { label:"Bunch 1 lb ≈ 6 cups → 12 servings",          servings:12 },
+        { label:"Twin bunch 2 lb ≈ 12 cups → 24 servings",    servings:24 }
+      ],
+      
+      // 🥕 Orange / Carotenoid / Red Vegetables
+      "Carrots": [
+        { label:"1 medium carrot ≈ 1 serving", servings:1 },
+        { label:"Bag whole 1 lb ≈ 10 servings", servings:10 },
+        { label:"Baby carrots bag 12 oz ≈ 4 cups → 5 servings", servings:5 },
+        { label:"Pre-sliced coins 10 oz ≈ 3 cups → 4 servings", servings:4 },
+        { label:"Frozen bag 12 oz ≈ 4 cups → 5 servings", servings:5 }
+      ],
+      "Sweet potatoes": [
+        { label:"Loose medium ≈ 1 serving each", servings:1 },
+        { label:"3-lb bag ≈ 8–10 servings", servings:10 },
+        { label:"Pre-cubed tray 12 oz ≈ 3 servings", servings:3 },
+        { label:"Frozen chunks 12 oz ≈ 3 servings", servings:3 }
+      ],
+      "Yams": [
+        { label:"Loose medium ≈ 1 serving each", servings:1 },
+        { label:"3-lb bag ≈ 8–10 servings", servings:10 },
+        { label:"Frozen chunks 12 oz ≈ 3 servings", servings:3 }
+      ],
+      "Tomatoes": [
+        { label:"Loose Roma ≈ 1 per serving", servings:1 },
+        { label:"Large slicing tomato ≈ 2 servings each", servings:2 },
+        { label:"Grape tomatoes clamshell 10 oz ≈ 2.5 cups → 5 servings", servings:5 },
+        { label:"Cherry tomatoes clamshell 16 oz ≈ 4 cups → 8 servings", servings:8 }
+      ],
+      "Red bell peppers": [
+        { label:"Loose medium pepper ≈ 2 servings", servings:2 },
+        { label:"Bag 3-count ≈ 6 servings", servings:6 },
+        { label:"Pre-sliced strips 8 oz ≈ 2 servings", servings:2 },
+        { label:"Frozen strips 12 oz ≈ 5 servings", servings:5 }
+      ],
+      "Orange bell peppers": [
+        { label:"Loose medium ≈ 2 servings", servings:2 },
+        { label:"Bag 3-count ≈ 6 servings", servings:6 },
+        { label:"Pre-sliced strips 8 oz ≈ 2 servings", servings:2 },
+        { label:"Frozen strips 12 oz ≈ 5 servings", servings:5 }
+      ],
+      // renamed from "Beets (red/purple)" to match master:
+      "Red beets": [
+        { label:"Loose medium beet ≈ 1 serving each", servings:1 },
+        { label:"Bunch (3) ≈ 3 servings", servings:3 },
+        { label:"Pre-steamed vacuum pack 8 oz ≈ 2 servings", servings:2 },
+        { label:"Pre-shredded 10 oz ≈ 4 servings", servings:4 }
+      ],
+      "Butternut squash": [
+        { label:"Whole medium ≈ 6 servings", servings:6 },
+        { label:"Pre-cubed tray 12 oz ≈ 3 servings", servings:3 },
+        { label:"Frozen chunks 12 oz ≈ 3 servings", servings:3 }
+      ],
+      "Acorn squash": [
+        { label:"Whole ≈ 4 servings", servings:4 },
+        { label:"Pre-cut half ≈ 2 servings", servings:2 },
+        { label:"Frozen chunks 12 oz ≈ 3 servings", servings:3 }
+      ],
+      "Pumpkin": [
+        { label:"Small sugar pumpkin ≈ 6 servings", servings:6 },
+        { label:"Pre-cubed tray 12 oz ≈ 3 servings", servings:3 },
+        { label:"Frozen chunks 12 oz ≈ 3 servings", servings:3 }
+      ],
+      "Spaghetti squash": [
+        { label:"Whole medium ≈ 8 servings", servings:8 },
+        { label:"Pre-cut half ≈ 4 servings", servings:4 },
+        { label:"Frozen strands 12 oz ≈ 3 servings", servings:3 }
+      ],
+      "Golden beets": [
+        { label:"Loose medium ≈ 1 serving each", servings:1 },
+        { label:"Bunch (3) ≈ 3 servings", servings:3 },
+        { label:"Pre-shredded tray 10 oz ≈ 4 servings", servings:4 }
+      ],
+      // new separate card to match master:
+      "Purple sweet potatoes/Ube": [
+        { label:"Loose medium ≈ 1 serving each", servings:1 },
+        { label:"3-lb bag ≈ 8–10 servings", servings:10 },
+        { label:"5-lb bag ≈ 30 servings", servings:30 },
+        { label:"Frozen purple fries 20 oz ≈ 10 servings", servings:10 }
+      ],
+      "Delicata squash": [
+        { label:"Whole ≈ 2 servings", servings:2 },
+        { label:"Pre-sliced half-moons 12 oz ≈ 3 servings", servings:3 }
+      ],
+      "Kabocha squash": [
+        { label:"Whole ≈ 6 servings", servings:6 },
+        { label:"Pre-cubed tray 12 oz ≈ 3 servings", servings:3 },
+        { label:"Frozen chunks 12 oz ≈ 3 servings", servings:3 }
+      ],
+      "Hubbard squash": [
+        { label:"Large wedge 2 lb ≈ 6 servings", servings:6 },
+        { label:"Pre-cubed tray 12 oz ≈ 3 servings", servings:3 }
+      ],
+
+
+    // ── FRUITS: grocery-size → servings (keys match MASTER order) ──
+    
+    // 🍓 BERRIES
+    "Strawberries": [
+      { label:"1-lb clamshell (≈3¾ c) → 5 serv", servings:5 },
+      { label:"2-lb clamshell → 10 serv",        servings:10 },
+      { label:"Frozen 16 oz → 6 serv",           servings:6 }
+    ],
+    "Blueberries": [
+      { label:"6-oz clamshell (≈1 c) → 2 serv",  servings:2 },
+      { label:"18-oz clamshell (≈3 c) → 6 serv", servings:6 },
+      { label:"Frozen 12 oz (≈2½ c) → 5 serv",   servings:5 }
+    ],
+    "Raspberries": [
+      { label:"6-oz clamshell (≈1 c) → 2 serv",  servings:2 },
+      { label:"12-oz clamshell (≈2 c) → 4 serv", servings:4 },
+      { label:"Frozen 12 oz (≈2½ c) → 5 serv",   servings:5 }
+    ],
+    "Blackberries": [
+      { label:"6-oz clamshell (≈1 c) → 2 serv",  servings:2 },
+      { label:"12-oz clamshell (≈2 c) → 4 serv", servings:4 },
+      { label:"Frozen 12 oz (≈2½ c) → 5 serv",   servings:5 }
+    ],
+    "Red/Black grapes": [
+      { label:"2-lb bag (≈6 c) → 8 serv",        servings:8 },
+      { label:"3-lb bag (≈9 c) → 12 serv",       servings:12 }
+    ],
+    "Green grapes": [
+      { label:"2-lb bag (≈6 c) → 8 serv",        servings:8 },
+      { label:"3-lb bag (≈9 c) → 12 serv",       servings:12 }
+    ],
+    "Cherries": [
+      { label:"2-lb bag sweet (≈6 c pitted) → 8 serv", servings:8 },
+      { label:"Frozen dark sweet 12 oz (≈2 c) → 3 serv",         servings:3 },
+      { label:"Frozen tart 12 oz (≈2 c) → 3 serv",               servings:3 }
+    ],
+    "Cranberries": [
+      { label:"12-oz bag fresh (≈3 c) → 6 serv", servings:6 }
+    ],
+    "Guava": [
+      { label:"1-lb bag small (≈6–8) → 4 serv",  servings:4 },
+      { label:"Loose medium → 1 serv each",      servings:1 }
+    ],
+    "Pomegranate": [
+      { label:"Whole large (≈2 c arils) → 4 serv",      servings:4 },
+      { label:"Fresh arils cup 8 oz (≈1½ c) → 3 serv",  servings:3 }
+    ],
+    "Figs": [
+      { label:"1-lb tray (≈8–10 med) → 5 serv",  servings:5 }
+    ],
+    "Plums": [
+      { label:"2-lb bag (≈10–12 small) → 10 serv", servings:10 }
+    ],
+    "Passionfruit": [
+      { label:"1-lb tray (≈8–10) → 4 serv",      servings:4 }
+    ],
+    "Mulberries": [
+      { label:"6-oz clamshell (≈1 c) → 2 serv",  servings:2 },
+      { label:"12-oz clamshell (≈2 c) → 4 serv", servings:4 },
+      { label:"Frozen 12 oz (≈2½ c) → 5 serv",   servings:5 }
+    ],
+    "Prickly pear": [
+      { label:"2-lb tray (≈8–10 fruits) → 8 serv", servings:8 },
+      { label:"Loose medium → 1 serv each",        servings:1 }
+    ],
+    "Lychee": [
+      { label:"1-lb bag (≈20–24) → 3 serv",      servings:3 }
+    ],
+    
+    // 🍊 CITRUS
+    "Oranges": [
+      { label:"3-lb bag (≈8–10) → 16 serv",      servings:16 },
+      { label:"Loose medium → 2 serv each",      servings:2 }
+    ],
+    "Mandarins": [
+      { label:"3-lb bag (≈18–20) → 18 serv",     servings:18 }
+    ],
+    "Tangerines": [
+      { label:"3-lb bag (≈12–16) → 12 serv",     servings:12 }
+    ],
+    "Clementines": [
+      { label:"3-lb bag (≈18–20) → 18 serv",     servings:18 }
+    ],
+    "Lemons": [
+      { label:"2-lb bag (≈8–10) → 16 serv",      servings:16 },
+      { label:"Loose medium → 2 serv each",      servings:2 }
+    ],
+    "Limes": [
+      { label:"2-lb bag (≈12–14) → 24 serv",     servings:24 },
+      { label:"Loose medium → 2 serv each",      servings:2 }
+    ],
+    "Pink grapefruit": [
+      { label:"5-lb bag (≈6–8) → 12 serv",       servings:12 },
+      { label:"Loose medium → 2 serv each",      servings:2 }
+    ],
+    "White grapefruit": [
+      { label:"5-lb bag (≈6–8) → 12 serv",       servings:12 },
+      { label:"Loose medium → 2 serv each",      servings:2 }
+    ],
+    "Minneola tangelos": [
+      { label:"3-lb bag (≈8–10) → 16 serv",      servings:16 },
+      { label:"Loose medium → 2 serv each",      servings:2 }
+    ],
+    "Kumquats": [
+      { label:"12-oz clamshell (≈3 c/≈36–40) → 6 serv", servings:6 }
+    ],
+    "Blood oranges": [
+      { label:"3-lb bag (≈8–10) → 16 serv",      servings:16 }
+    ],
+    "Pineapple": [
+      { label:"Whole (≈4–5 c trimmed) → 8 serv",       servings:8 },
+      { label:"Fresh chunks 16 oz (≈2½ c) → 5 serv",   servings:5 },
+      { label:"Frozen chunks 16 oz (≈3 c) → 6 serv",   servings:6 }
+    ],
+    "Pomelos": [
+      { label:"Loose large → 2 serv each",       servings:2 }
+    ],
+    "Starfruit": [
+      { label:"Clamshell 1 lb (≈4–5) → 4 serv",  servings:4 }
+    ],
+    "Ugli fruit": [
+      { label:"3-lb bag (≈6–8) → 6 serv",        servings:6 },
+      { label:"Loose → 1 serv each",             servings:1 }
+    ],
+    "Buddha's hand": [
+      { label:"Loose fruit (zest/segments) → 2 serv each", servings:2 }
+    ],
+    
+    // 🍉 CAROTENOID & LYCOPENE
+    "Watermelon": [
+      { label:"Personal 5–7 lb (≈10–14 c) → 12 serv", servings:12 },
+      { label:"Pre-cut cubes 16 oz (≈3 c) → 3 serv",  servings:3 }
+    ],
+    "Cantaloupe": [
+      { label:"Whole (≈4–5 c) → 4 serv",         servings:4 },
+      { label:"Pre-cut cubes 16 oz (≈3 c) → 3 serv", servings:3 }
+    ],
+    "Peaches": [
+      { label:"2-lb bag (≈6–8 small) → 6 serv",  servings:6 },
+      { label:"Loose large → 2 serv each",       servings:2 }
+    ],
+    "Nectarines": [
+      { label:"2-lb bag (≈6–8 small) → 6 serv",  servings:6 },
+      { label:"Loose large → 2 serv each",       servings:2 }
+    ],
+    "Mangoes (large)": [
+      { label:"Loose large (Tommy/Haden) → 2 serv each", servings:2 },
+      { label:"Frozen chunks 16 oz (≈3 c) → 6 serv",     servings:6 }
+    ],
+    "Mangoes (small)": [
+      { label:"6-count small (Ataulfo/Honey) → 6 serv",  servings:6 },
+      { label:"Frozen chunks 12 oz (≈2¼ c) → 4 serv",    servings:4 }
+    ],
+    "Papaya": [
+      { label:"Medium 2–3 lb (≈3–4 c) → 3 serv", servings:3 },
+      { label:"Large 4–5 lb (≈6–7 c) → 6 serv",  servings:6 }
+    ],
+    "Apricots": [
+      { label:"1-lb tray (≈8–10 small) → 4 serv", servings:4 }
+    ],
+    "Cherry/Grape tomatoes": [
+      { label:"Grape 10-oz clamshell (≈2½ c) → 5 serv", servings:5 },
+      { label:"Cherry 16-oz clamshell (≈4 c) → 8 serv", servings:8 }
+    ],
+    "Persimmons": [
+      { label:"Fuyu 2-lb tray (≈6–8) → 6 serv",  servings:6 }
+    ],
+    "Galia melon": [
+      { label:"Whole (≈4–5 c) → 4 serv",         servings:4 },
+      { label:"Pre-cut 16 oz (≈3 c) → 3 serv",   servings:3 }
+    ],
+    "Canary melon": [
+      { label:"Whole (≈4–5 c) → 4 serv",         servings:4 },
+      { label:"Pre-cut 16 oz (≈3 c) → 3 serv",   servings:3 }
+    ],
+    "Jackfruit": [
+      { label:"Fresh pods 12 oz (≈2½ c) → 3 serv",      servings:3 },
+      { label:"Fresh cut slab 1 lb (≈3 c pods) → 4 serv", servings:4 }
+    ],
+    "Mamey sapote": [
+      { label:"Loose (≈2–3 c flesh) → 4 serv",   servings:4 }
+    ],
+    "Nance": [
+      { label:"Fresh 12 oz (≈2 c) → 4 serv",     servings:4 }
+    ],
+    "Horned melon": [
+      { label:"Loose medium (kiwano) → 2 serv each", servings:2 }
+    ],
+    
+    // 🍌 OTHER FRUITS
+    "Bananas": [
+      { label:"Bunch 6-count → 7 serv",                          servings:7 },
+      { label:"Mini (Niño) 1-lb bunch (≈8–10) → 8 serv",         servings:8 }
+    ],
+    "Red apples": [
+      { label:"3-lb bag (≈8–10 large) → 16 serv", servings:16 },
+      { label:"Loose large → 2 serv each",        servings:2 }
+    ],
+    "Green apples": [
+      { label:"3-lb bag (≈8–10 large) → 16 serv", servings:16 },
+      { label:"Loose large → 2 serv each",        servings:2 }
+    ],
+    "Yellow apples": [
+      { label:"3-lb bag (≈8–10 large) → 16 serv", servings:16 },
+      { label:"Loose large → 2 serv each",        servings:2 }
+    ],
+    "Avocados": [
+      { label:"4-count bag (med) → 8 serv",       servings:8 },
+      { label:"Loose large → 2 serv each",        servings:2 }
+    ],
+    "Pears": [
+      { label:"3-lb bag (≈8–10) → 12 serv",       servings:12 },
+      { label:"Loose large → 2 serv each",        servings:2 }
+    ],
+    "Kiwi": [
+      { label:"2-lb bag (≈12–14) → 12 serv",      servings:12 },
+      { label:"Clamshell 1 lb (≈7–8) → 7 serv",   servings:7 }
+    ],
+    "Coconut": [
+      { label:"Whole brown (≈2–3 c flesh + 1–1½ c water) → 10 serv", servings:10 },
+      { label:"Fresh chunks cup 8 oz (≈1½ c) → 6 serv",              servings:6 }
+    ],
+    "Honeydew melon": [
+      { label:"Whole (≈4–5 c) → 4 serv",         servings:4 },
+      { label:"Pre-cut 16 oz (≈3 c) → 3 serv",   servings:3 }
+    ],
+    "Dates": [
+      { label:"Medjool 12-oz box (≈16–18) → 8 serv", servings:8 }
+    ],
+    "Plantains": [
+      { label:"Loose medium → 2 serv each",      servings:2 },
+      { label:"3-count bag → 6 serv",            servings:6 }
+    ],
+    "Dragonfruit (pitaya)": [
+      { label:"Loose medium → 2 serv each",      servings:2 },
+      { label:"2-count pack → 4 serv",           servings:4 }
+    ],
+    "Tamarind": [
+      { label:"Fresh pods 1-lb tray (≈1½ c pulp) → 6 serv", servings:6 }
+    ],
+    "Pawpaws": [
+      { label:"Fresh 2-lb box (≈6–8) → 6 serv",  servings:6 },
+      { label:"Pulp tub 16 oz (≈2 c) → 4 serv",  servings:4 }
+    ],
+    "Soursop/Guanabana": [
+      { label:"Fresh cut piece 2 lb (≈3–4 c pulp) → 6 serv", servings:6 },
+      { label:"Pulp tub 16 oz (≈2 c) → 4 serv",              servings:4 }
+    ],
+    "Asian pears": [
+      { label:"3-lb bag (≈8–10) → 12 serv",      servings:12 },
+      { label:"Loose large → 2 serv each",       servings:2 }
+    ],
+
+
+    // ── PROTEINS: grocery formats → app servings (match PROTEINS order) ──
+    
+    // 🫘 LEGUMES & PULSES  (serving = 1/4 cup cooked unless noted)
+    "Black beans": [
+      { label:"Canned 15.5 oz (drained ≈ 1½ c) → 6 serv", servings:6 },
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 }
+    ],
+    "Pinto beans": [
+      { label:"Canned 15.5 oz (drained ≈ 1½ c) → 6 serv", servings:6 },
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 }
+    ],
+    "Kidney beans": [
+      { label:"Canned 15.5 oz (drained ≈ 1½ c) → 6 serv", servings:6 },
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 }
+    ],
+    "Chickpeas/Garbanzo beans": [
+      { label:"Canned 15.5 oz (drained ≈ 1½ c) → 6 serv", servings:6 },
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 }
+    ],
+    "Navy beans": [
+      { label:"Canned 15.5 oz → 6 serv", servings:6 },
+      { label:"Dried 1 lb → 24 serv", servings:24 },
+      { label:"Dried 8 oz → 12 serv", servings:12 }
+    ],
+    "Brown lentils": [
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 },
+      { label:"Canned 15 oz (≈ 1½ c) → 6 serv", servings:6 }
+    ],
+    "Red lentils": [
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 },
+      { label:"Canned 15 oz (≈ 1½ c) → 6 serv", servings:6 }
+    ],
+    "Green lentils": [
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 },
+      { label:"Canned 15 oz (≈ 1½ c) → 6 serv", servings:6 }
+    ],
+    "Yellow split peas": [
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 }
+    ],
+    "Green split peas": [
+      { label:"Dried 1 lb (≈ 6 c cooked) → 24 serv", servings:24 },
+      { label:"Dried 8 oz (≈ 3 c cooked) → 12 serv", servings:12 }
+    ],
+    "Peanuts": [
+      { label:"Roasted/shelled 16 oz (≈ 3 c) → 12 serv", servings:12 },
+      { label:"Roasted/shelled 8 oz (≈ 1½ c) → 6 serv", servings:6 },
+      { label:"Peanut butter 16 oz jar (≈ 32 Tbsp) → 16 serv", servings:16 },
+      { label:"Peanut butter 12 oz jar (≈ 24 Tbsp) → 12 serv", servings:12 }
+    ],
+    "Lima/Butter beans": [
+      { label:"Canned 15.5 oz → 6 serv", servings:6 },
+      { label:"Dried 1 lb → 24 serv", servings:24 },
+      { label:"Dried 8 oz → 12 serv", servings:12 }
+    ],
+    "Black-eyed peas": [
+      { label:"Canned 15.5 oz → 6 serv", servings:6 },
+      { label:"Dried 1 lb → 24 serv", servings:24 },
+      { label:"Dried 8 oz → 12 serv", servings:12 }
+    ],
+    "Fava beans": [
+      { label:"Dried 1 lb → 24 serv", servings:24 },
+      { label:"Dried 8 oz → 12 serv", servings:12 },
+      { label:"Canned 15 oz → 6 serv", servings:6 }
+    ],
+    "Mung beans": [
+      { label:"Dried 1 lb → 24 serv", servings:24 },
+      { label:"Dried 8 oz → 12 serv", servings:12 }
+    ],
+    "Adzuki beans": [
+      { label:"Dried 1 lb → 24 serv", servings:24 },
+      { label:"Dried 8 oz → 12 serv", servings:12 },
+      { label:"Canned 15 oz → 6 serv", servings:6 }
+    ],
+    
+    // 🧱 COMPLETE PROTEINS
+    "Soft/Firm tofu": [
+      // soft
+      { label:"Shelf-stable soft 12.3 oz (≈ 1½ c) → 3 serv", servings:3 },
+      { label:"Refrigerated soft 14 oz (≈ 1¾ c) → 3 serv", servings:3 },
+      // firm
+      { label:"Firm block 14 oz (≈ 1¾ c) → 3 serv", servings:3 },
+      { label:"Firm block 16 oz (≈ 2 c) → 4 serv", servings:4 },
+      { label:"Pre-cubed firm 12 oz (≈ 1½ c) → 3 serv", servings:3 }
+    ],
+    "Tempeh": [
+      { label:"8 oz slab (≈ 1 c) → 4 serv", servings:4 },
+      { label:"12 oz slab (≈ 1½ c) → 6 serv", servings:6 }
+    ],
+    "Edamame": [
+      { label:"Frozen 12 oz (≈ 2½ c shelled) → 5 serv", servings:5 },
+      { label:"Frozen 16 oz (≈ 3¼ c) → 6 serv", servings:6 },
+      { label:"Fresh shelled 8 oz (≈ 1¾ c) → 3 serv", servings:3 }
+    ],
+    "Hemp hearts": [
+      { label:"8 oz bag → ~11 serv", servings:11 },
+      { label:"16 oz bag → ~22 serv", servings:22 }
+    ],
+    "Quinoa": [
+      { label:"Dry 1 lb (≈ 2½ c dry → ~7½ c cooked) → 15 serv", servings:15 },
+      { label:"Dry 12 oz (≈ 1¾ c dry → ~5¼ c cooked) → 10 serv", servings:10 },
+      { label:"Cooked pouch 8.5 oz (≈ 1½–1¾ c) → 3 serv", servings:3 }
+    ],
+    "Amaranth": [
+      { label:"Dry 1 lb (≈ 2¼ c dry → ~5½–6 c cooked) → 11–12 serv", servings:12 },
+      { label:"Dry 12 oz (≈ 1⅔ c dry → ~4–4½ c cooked) → 8–9 serv", servings:9 }
+    ],
+    "Buckwheat/Soba": [
+      { label:"Buckwheat groats 1 lb (≈ 2½ c dry → ~6–7 c cooked) → 12–14 serv", servings:14 },
+      { label:"Groats 12 oz (≈ 1¾ c dry → ~4½–5 c cooked) → 9–10 serv", servings:10 },
+      { label:"100% buckwheat soba 9–10 oz pack (≈ 6–7 c cooked) → 12–14 serv", servings:14 }
+    ],
+    "Chia seeds": [
+      { label:"12 oz bag → ~12–13 serv", servings:13 },
+      { label:"24 oz bag → ~24–26 serv", servings:26 }
+    ],
+    "Wild rice": [
+      { label:"Dry 1 lb (≈ 2½ c dry → ~7–8 c cooked) → 15–16 serv", servings:16 },
+      { label:"Dry 12 oz (≈ 1¾ c dry → ~5–5½ c cooked) → 10–11 serv", servings:11 },
+      { label:"Cooked pouch 8.5 oz (≈ 1½–1¾ c) → 3 serv", servings:3 }
+    ],
+    "Textured Vegetable Protein (TVP)": [
+      { label:"8 oz bag (≈ 2¾–3 c dry) → ~14–16 serv", servings:16 },
+      { label:"12 oz bag (≈ 4–4¼ c dry) → ~21–22 serv", servings:22 },
+      { label:"1 lb bag (≈ 5⅓–5½ c dry) → ~28–29 serv", servings:29 }
+    ],
+    "Seitan/Wheat-based meat": [
+      { label:"8 oz log/tub → 4 serv", servings:4 },
+      { label:"16 oz tub → 8 serv", servings:8 }
+    ],
+    "Eggs/Egg substitute": [
+      { label:"Dozen eggs (12 ct) → 12 serv", servings:12 },
+      { label:"Half-dozen (6 ct) → 6 serv", servings:6 },
+      { label:"Liquid egg substitute 16 oz carton (¼ c ≈ 1 egg) → 8 serv", servings:8 }
+    ],
+    "Chicken/Turkey/Plant poultry": [
+      { label:"Chicken/turkey fresh or frozen 8 oz pack → 4 serv", servings:4 },
+      { label:"Chicken/turkey 12 oz pack → 6 serv", servings:6 },
+      { label:"Plant-based poultry (strips/nuggets) 8–10 oz → 4–5 serv", servings:5 }
+    ],
+    "Cow meat/Plant beef": [
+      { label:"Ground/strips 8 oz → 4 serv", servings:4 },
+      { label:"Ground/strips 12 oz → 6 serv", servings:6 },
+      { label:"Plant-based ground 12 oz → 6 serv", servings:6 }
+    ],
+    "Pig meat/Plant pork": [
+      { label:"Chops/strips 8 oz → 4 serv", servings:4 },
+      { label:"Strips/ground 12 oz → 6 serv", servings:6 }
+    ],
+    "Lamb/Goat/Other meats": [
+      { label:"Fresh 8 oz → 4 serv", servings:4 },
+      { label:"Fresh 12 oz → 6 serv", servings:6 }
+    ],
+    
+    // 🥛 DAIRY (animal- and plant-based; fortification note shown elsewhere)
+    "Soy milk": [
+      { label:"Gallon 128 oz (16 c) → 16 serv", servings:16 },
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 },
+      { label:"Pint 16 oz (2 c) → 2 serv", servings:2 }
+    ],
+    "Oat milk": [
+      { label:"Gallon 128 oz (16 c) → 16 serv", servings:16 },
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 },
+      { label:"Pint 16 oz (2 c) → 2 serv", servings:2 }
+    ],
+    "Hazelnut milk": [
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 }
+    ],
+    "Almond milk": [
+      { label:"Gallon 128 oz (16 c) → 16 serv", servings:16 },
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 },
+      { label:"Pint 16 oz (2 c) → 2 serv", servings:2 }
+    ],
+    "Cashew milk": [
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 }
+    ],
+    "Hemp/Flax milk": [
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 }
+    ],
+    "Rice milk": [
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 }
+    ],
+    "Coconut milk": [
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 }
+    ],
+    "Lactated cow/goat/sheep milk": [
+      { label:"Gallon 128 oz (16 c) → 16 serv", servings:16 },
+      { label:"Half gallon 64 oz (8 c) → 8 serv", servings:8 },
+      { label:"Quart 32 oz (4 c) → 4 serv", servings:4 },
+      { label:"Pint 16 oz (2 c) → 2 serv", servings:2 }
+    ],
+    "Yogurt/Kefir": [
+      { label:"Individual cup 6 oz (~¾ c) → 1 serv", servings:1 },
+      { label:"Large tub 24 oz (~3 c) → 4 serv", servings:4 },
+      { label:"Quart tub 32 oz (~4 c) → 5 serv", servings:5 },
+      { label:"Kefir quart 32 oz (~4 c) → 5 serv", servings:5 }
+    ],
+    "Cream cheese": [
+      { label:"8 oz brick/tub (~1 c) → 4 serv", servings:4 },
+      { label:"12 oz tub (~1½ c) → 6 serv", servings:6 }
+    ],
+    "Soft aged/crumbly cheese": [
+      { label:"Feta 8 oz tub (~1½ c crumbled) → 6 serv", servings:6 },
+      { label:"Goat cheese log 8 oz (~1 c) → 4 serv", servings:4 },
+      { label:"Blue cheese 4 oz wedge (~¾ c crumbled) → 3 serv", servings:3 },
+      { label:"Blue cheese 8 oz wedge (~1½ c crumbled) → 6 serv", servings:6 }
+    ],
+    "Sour cream": [
+      { label:"8 oz tub (~1 c) → 4 serv", servings:4 },
+      { label:"16 oz tub (~2 c) → 8 serv", servings:8 }
+    ],
+    "Cottage cheese": [
+      { label:"16 oz tub (~2 c) → 8 serv", servings:8 },
+      { label:"24 oz tub (~3 c) → 12 serv", servings:12 }
+    ],
+    "Hard cheeses": [
+      { label:"8 oz block (~8 serv)", servings:8 },
+      { label:"16 oz block (~16 serv)", servings:16 },
+      { label:"Shredded 8 oz bag (~2 c shredded) → 8 serv", servings:8 },
+      { label:"Shredded 16 oz bag (~4 c shredded) → 16 serv", servings:16 }
+    ],
+    "Soft fresh cheeses": [
+      { label:"Ricotta 15 oz (~2 c) → 4 serv", servings:4 },
+      { label:"Ricotta 32 oz (~4 c) → 8 serv", servings:8 },
+      { label:"Fresh mozzarella 8 oz (~1 c) → 2 serv", servings:2 },
+      { label:"Fresh mozzarella 16 oz (~2 c) → 4 serv", servings:4 }
+    ],
+    
+    // 🐟 SEAFOOD  (serving = 1/4 cup cooked ≈ 2 oz unless noted)
+    "Salmon": [
+      { label:"Fresh filet 1 lb (16 oz) → 8 serv", servings:8 },
+      { label:"Frozen 12 oz pack → 6 serv", servings:6 },
+      { label:"Canned 5 oz → ≈ 2 serv", servings:2 }
+    ],
+    "Tuna": [
+      { label:"Fresh filet 1 lb → 8 serv", servings:8 },
+      { label:"Frozen 12 oz → 6 serv", servings:6 },
+      { label:"Canned 5 oz → ≈ 2 serv", servings:2 }
+    ],
+    "Tilapia": [
+      { label:"Fresh filet 1 lb → 8 serv", servings:8 },
+      { label:"Frozen 2 lb bag → 16 serv", servings:16 }
+    ],
+    "Shrimp": [
+      { label:"Frozen 12 oz bag (6–7 large ≈ 2 oz) → ≈ 6 serv", servings:6 },
+      { label:"Frozen 1 lb bag → ≈ 8 serv", servings:8 }
+    ],
+    "Cod/Pollock": [
+      { label:"Fresh cod or pollock filet 1 lb → 8 serv", servings:8 },
+      { label:"Frozen 12 oz → 6 serv", servings:6 },
+      { label:"Frozen 2 lb bag → 16 serv", servings:16 }
+    ],
+    "Trout": [
+      { label:"Fresh filet 1 lb → 8 serv", servings:8 },
+      { label:"Frozen 12 oz → 6 serv", servings:6 }
+    ],
+    "Crab": [
+      { label:"Fresh lump 8 oz tub → 4 serv", servings:4 },
+      { label:"Canned 6 oz → 3 serv", servings:3 }
+    ],
+    "Clams": [
+      { label:"Fresh 1 lb in shell (¼ c = 6–8 clams) → ~8 serv", servings:8 },
+      { label:"Canned 10 oz → ≈ 5 serv", servings:5 }
+    ],
+    "Oysters": [
+      { label:"Fresh 1 lb in shell (¼ c = 4–5 oysters) → ~8 serv", servings:8 },
+      { label:"Canned 8 oz → ≈ 4 serv", servings:4 }
+    ],
+    "Scallops": [
+      { label:"Fresh 1 lb (¼ c = 3 large) → ≈ 16 serv", servings:16 },
+      { label:"Frozen 12 oz → ≈ 12 serv", servings:12 }
+    ],
+    "Crawfish": [
+      { label:"Fresh/frozen 1 lb tail meat → ≈ 8 serv", servings:8 }
+    ],
+    "Mussels": [
+      { label:"Fresh 1 lb in shell (¼ c = 5–6 mussels) → ≈ 8 serv", servings:8 },
+      { label:"Frozen bag 2 lb → ≈ 16 serv", servings:16 }
+    ],
+    "Sardines/Anchovies": [
+      { label:"Sardines canned 3.75 oz tin → ≈ 2 serv", servings:2 },
+      { label:"Anchovies canned 2 oz tin (drained) → ≈ 2 serv", servings:2 }
+    ],
+    "Mackerel": [
+      { label:"Fresh filet 1 lb → 8 serv", servings:8 },
+      { label:"Canned 4 oz → ≈ 2 serv", servings:2 }
+    ],
+    "Lobster": [
+      { label:"Fresh 1 lb tail → ≈ 8 serv", servings:8 }
+    ],
+    "Catfish": [
+      { label:"Fresh filet 1 lb → 8 serv", servings:8 },
+      { label:"Frozen 12 oz → 6 serv", servings:6 }
+    ],
+
+
+    // ── ROOTS / SHOOTS / SEEDS: grocery formats → app servings ──
+    // Serving rule (grains): 1/2 cup cooked = 1 serving (unless noted)
+    // Serving rule (roots/tubers): 1/2 cup cooked ≈ 1 serving (unless noted)
+    // Serving rule (oils/fats): 1/2 Tbsp = 1 serving
+    
+    // =============== GRASSES (follow MASTER order) ===============
+    "Wheat": [
+      { label:"Wheat berries 5 lb (~22 c raw → ~55 c cooked) → 110 serv", servings:110 },
+      { label:"Wheat berries 1 lb (~4.4 c cooked) → ~9 serv", servings:9 },
+      { label:"Wheat bread loaf (20 slices; 2 = 1/2 c eq) → 10 serv", servings:10 },
+      { label:"Whheat tortillas 10 ct (1 = 1/2 c eq) → 10 serv", servings:10 }
+    ],
+    "Pasta": [
+      { label:"Dry 16 oz box (≈ 32 oz cooked ≈ ~16 c 1/2-c eq) → 16 serv", servings:16 },
+      { label:"Dry 12 oz box → 12 serv", servings:12 },
+      { label:"Dry 8 oz box → 8 serv", servings:8 },
+      { label:"Ready pasta pouch 8.5 oz (≈ ~2 c cooked) → 4 serv", servings:4 }
+    ],
+    "White rice": [
+      { label:"Long Grain 25 lb → ~150 c cooked → ~300 serv", servings:300 },
+      { label:"Parboiled 12 lb → ~72 c cooked → ~144 serv", servings:144 },
+      { label:"Extra Long 80 oz (≈5 lb) → ~30 c cooked → ~60 serv", servings:60 }
+    ],
+    "Brown rice": [
+      { label:"5 lb bag → ~30 c cooked → ~60 serv", servings:60 },
+      { label:"2 lb bag → ~12 c cooked → ~24 serv", servings:24 },
+      { label:"Microwave pouch ~8.5 oz (≈ ~2 c cooked) → 4 serv", servings:4 }
+    ],
+    "Cornmeal": [
+      { label:"Cornmeal 80 oz (5 lb ≈ 20 c meal → ~50 c cooked) → ~100 serv", servings:100 },
+      { label:"Cornmeal 24 oz (≈6 c meal → ~15 c cooked) → ~30 serv", servings:30 },
+      { label:"Corn tortillas 10 ct (1 = 1/2 c eq) → 10 serv", servings:10 },
+      { label:"Prepared polenta 1 lb (≈ ~12.5 c cooked 1/2-c eq) → ~25 serv", servings:25 }
+    ],
+    "Oats": [
+      { label:"Rolled 18 oz tub (~4 c dry → ~9 c cooked) → 18 serv", servings:18 },
+      { label:"Steel-cut 24 oz (~6 c dry → ~18 c cooked) → 36 serv", servings:36 },
+      { label:"Quick oats 42 oz (~11 c dry → ~22 c cooked) → 44 serv", servings:44 }
+    ],
+    "Couscous": [
+      { label:"Dry 16 oz (≈ ~6 c cooked) → ~12 serv", servings:12 },
+      { label:"Dry 10 oz (≈ ~4 c cooked) → ~8 serv", servings:8 },
+      { label:"Instant cup/pouch (≈ ~2 c cooked) → 4 serv", servings:4 }
+    ],
+    "Quinoa": [
+      { label:"Dry 1 lb (≈ 2½ c dry → ~7½ c cooked) → 15 serv", servings:15 },
+      { label:"Dry 12 oz (≈ 1¾ c dry → ~5¼ c cooked) → 10 serv", servings:10 },
+      { label:"Cooked pouch 8.5 oz (≈ 1½–1¾ c) → 3 serv", servings:3 }
+    ],
+    "Millet": [
+      { label:"1 lb → ~6 c cooked → 12 serv", servings:12 },
+      { label:"2 lb → ~12 c cooked → 24 serv", servings:24 }
+    ],
+    "Amaranth": [
+      { label:"1 lb (≈ ~6 c cooked) → 12 serv", servings:12 },
+      { label:"2 lb (≈ ~12 c cooked) → 24 serv", servings:24 }
+    ],
+    "Buckwheat/Soba": [
+      { label:"Groats 1 lb (→ ~5 c cooked) → 10 serv", servings:10 },
+      { label:"Groats 2 lb (→ ~10 c cooked) → 20 serv", servings:20 },
+      { label:"100% buckwheat soba 9–10 oz pack (≈ 6–7 c cooked) → 12–14 serv", servings:14 }
+    ],
+    "Wild rice/Manoomin": [
+      { label:"Wild rice 1 lb (→ ~5 c cooked) → 10 serv", servings:10 },
+      { label:"Wild rice 2 lb (→ ~10 c cooked) → 20 serv", servings:20 },
+      { label:"Wild-rice blend 1 lb (→ ~5 c cooked) → 10 serv", servings:10 }
+    ],
+    "Rye": [
+      { label:"Rye berries 1 lb (→ ~5 c cooked) → 10 serv", servings:10 },
+      { label:"Rye/pumpernickel loaf (20 slices; 2 = 1/2 c eq) → 10 serv", servings:10 }
+    ],
+    "Kamut": [
+      { label:"Berries 1 lb (→ ~5 c cooked) → 10 serv", servings:10 },
+      { label:"Berries 2 lb (→ ~10 c cooked) → 20 serv", servings:20 }
+    ],
+    "Barley": [
+      { label:"Pearl 1 lb (→ ~5 c cooked) → 10 serv", servings:10 },
+      { label:"Pearl 2 lb (→ ~10 c cooked) → 20 serv", servings:20 },
+      { label:"Hulled 1 lb (lower yield) → ~8 serv", servings:8 }
+    ],
+    "Sorghum": [
+      { label:"1 lb (→ ~5 c cooked) → 10 serv", servings:10 },
+      { label:"2 lb (→ ~10 c cooked) → 20 serv", servings:20 }
+    ],
+    
+    // =============== ROOTS & TUBERS (follow MASTER order) ===============
+    "Russet potatoes": [
+      { label:"5 lb bag fresh → ~30 serv", servings:30 },
+      { label:"10 lb bag fresh → ~60 serv", servings:60 },
+      { label:"Frozen fries 20 oz → ~10 serv", servings:10 },
+      { label:"Frozen hash browns 22 oz → ~11 serv", servings:11 }
+    ],
+    "Red potatoes": [
+      { label:"3 lb bag fresh → ~18 serv", servings:18 },
+      { label:"5 lb bag fresh → ~30 serv", servings:30 },
+      { label:"1.5 lb steam pack → ~9 serv", servings:9 }
+    ],
+    "Yukon Gold potatoes": [
+      { label:"3 lb bag fresh → ~18 serv", servings:18 },
+      { label:"5 lb bag fresh → ~30 serv", servings:30 },
+      { label:"1.5 lb steam pack → ~9 serv", servings:9 }
+    ],
+    "Fingerling potatoes": [
+      { label:"1.5 lb bag fresh → ~12 serv", servings:12 },
+      { label:"3 lb bag fresh → ~24 serv", servings:24 }
+    ],
+    "Purple potatoes": [
+      { label:"3 lb bag fresh → ~18 serv", servings:18 },
+      { label:"5 lb bag fresh → ~30 serv", servings:30 }
+    ],
+    "Sweet potatoes": [
+      { label:"3 lb bag fresh → ~18 serv", servings:18 },
+      { label:"5 lb bag fresh → ~30 serv", servings:30 },
+      { label:"Frozen fries 20 oz → ~10 serv", servings:10 },
+      { label:"Frozen cubes 20 oz → ~10 serv", servings:10 }
+    ],
+    "Yams": [
+      { label:"3 lb bag fresh → ~18 serv", servings:18 },
+      { label:"5 lb bag fresh → ~30 serv", servings:30 }
+    ],
+    "Plantains": [
+      { label:"2 lb bag fresh (~5–6) → ~8 serv", servings:8 },
+      { label:"Frozen sliced 20 oz → ~10 serv", servings:10 }
+    ],
+    "Cassava (yuca/tapioca/fufu)": [
+      { label:"Frozen peeled chunks 5 lb → ~30 serv", servings:30 },
+      { label:"Fresh root 2 lb → ~6 serv", servings:6 }
+    ],
+    "Taro": [
+      { label:"Fresh root 2 lb → ~6 serv", servings:6 },
+      { label:"Frozen peeled chunks 20 oz → ~10 serv", servings:10 }
+    ],
+    "Rutabaga": [
+      { label:"Medium (~1 lb) → ~3 serv", servings:3 },
+      { label:"3 lb bag → ~9 serv", servings:9 }
+    ],
+    "Turnips": [
+      { label:"Medium (~1/2 lb) → ~2 serv", servings:2 },
+      { label:"3 lb bag → ~12 serv", servings:12 }
+    ],
+    "Parsnips": [
+      { label:"1 lb bag fresh → ~6 serv", servings:6 },
+      { label:"2 lb bag fresh → ~12 serv", servings:12 }
+    ],
+    "White/Golden sweet potatoes (boniato)": [
+      { label:"3 lb bag fresh → ~18 serv", servings:18 },
+      { label:"5 lb bag fresh → ~30 serv", servings:30 }
+    ],
+    "Purple sweet potatoes/Ube": [
+      { label:"3 lb bag fresh → ~18 serv", servings:18 },
+      { label:"5 lb bag fresh → ~30 serv", servings:30 },
+      { label:"Frozen purple fries 20 oz → ~10 serv", servings:10 }
+    ],
+    "Arrowroot": [
+      { label:"Arrowroot powder 16 oz (≈ 32 Tbsp) → 32 serv", servings:32 },
+      { label:"Arrowroot powder 8 oz (≈ 16 Tbsp) → 16 serv", servings:16 }
+    ],
+    
+    // =============== NUTS & SEEDS (follow MASTER order) ===============
+    "Almonds": [
+      { label:"8 oz shelled → ~22 serv", servings:22 },
+      { label:"16 oz shelled → ~44 serv", servings:44 },
+      { label:"Almond butter 12 oz jar → ~12 serv", servings:12 },
+      { label:"Almond butter 16 oz jar → ~16 serv", servings:16 }
+    ],
+    "Walnuts": [
+      { label:"8 oz halves → ~22 serv", servings:22 },
+      { label:"16 oz halves → ~44 serv", servings:44 },
+      { label:"In-shell 16 oz → ~36 serv", servings:36 }
+    ],
+    "Pecans": [
+      { label:"8 oz halves → ~22 serv", servings:22 },
+      { label:"16 oz halves → ~44 serv", servings:44 }
+    ],
+    "Cashews": [
+      { label:"8 oz bag → ~22 serv", servings:22 },
+      { label:"16 oz bag → ~44 serv", servings:44 },
+      { label:"Cashew butter 12 oz jar → ~12 serv", servings:12 }
+    ],
+    "Pistachios": [
+      { label:"8 oz in-shell → ~16 serv", servings:16 },
+      { label:"16 oz in-shell → ~32 serv", servings:32 },
+      { label:"8 oz shelled → ~22 serv", servings:22 }
+    ],
+    "Sunflower seeds": [
+      { label:"8 oz shelled → ~30 serv", servings:30 },
+      { label:"16 oz shelled → ~60 serv", servings:60 },
+      { label:"Sunflower butter 12 oz → ~12 serv", servings:12 }
+    ],
+    "Sesame seeds/Tahini": [
+      { label:"Sesame seeds 8 oz → ~23 serv", servings:23 },
+      { label:"Sesame seeds 16 oz → ~46 serv", servings:46 },
+      { label:"Tahini 15 oz jar → ~15 serv", servings:15 }
+    ],
+    "Pumpkin seeds (pepitas)": [
+      { label:"8 oz bag → ~24 serv", servings:24 },
+      { label:"16 oz bag → ~48 serv", servings:48 }
+    ],
+    "Flax seeds": [
+      { label:"16 oz bag (whole/ground) → ~32 serv", servings:32 },
+      { label:"24 oz bag → ~48 serv", servings:48 }
+    ],
+    "Chia seeds": [
+      { label:"12 oz bag → ~24 serv", servings:24 },
+      { label:"16 oz bag → ~32 serv", servings:32 }
+    ],
+    "Hemp hearts/seeds": [
+      { label:"8 oz bag → ~16 serv", servings:16 },
+      { label:"16 oz bag → ~32 serv", servings:32 }
+    ],
+    "Hazelnuts": [
+      { label:"8 oz shelled → ~22 serv", servings:22 },
+      { label:"16 oz shelled → ~44 serv", servings:44 },
+      { label:"Hazelnut butter 13 oz (unsweetened) → ~13 serv", servings:13 }
+    ],
+    "Macadamia nuts": [
+      { label:"8 oz bag → ~22 serv", servings:22 },
+      { label:"12 oz bag → ~33 serv", servings:33 }
+    ],
+    "Brazil nuts": [
+      { label:"8 oz bag (≈2 nuts/serv) → ~24 serv", servings:24 },
+      { label:"16 oz bag → ~48 serv", servings:48 }
+    ],
+    "Pine nuts": [
+      { label:"8 oz bag → ~22 serv", servings:22 },
+      { label:"16 oz bag → ~44 serv", servings:44 }
+    ],
+    "Poppy seeds": [
+      { label:"8 oz bag → ~16 serv", servings:16 },
+      { label:"16 oz bag → ~32 serv", servings:32 }
+    ],
+    
+    // =============== OILS & FATS (follow MASTER order; 1/2 Tbsp = 1 serv) ===============
+    "Olive oil": [
+      { label:"8 oz bottle → ~47 serv", servings:47 },
+      { label:"16 oz bottle → ~94 serv", servings:94 },
+      { label:"25 oz bottle → ~147 serv", servings:147 },
+      { label:"32 oz bottle → ~189 serv", servings:189 }
+    ],
+    "Soy oil": [
+      { label:"16 oz bottle → ~94 serv", servings:94 },
+      { label:"32 oz bottle → ~189 serv", servings:189 }
+    ],
+    "Canola oil": [
+      { label:"16 oz bottle → ~94 serv", servings:94 },
+      { label:"32 oz bottle → ~189 serv", servings:189 }
+    ],
+    "Coconut oil": [
+      { label:"14 oz jar → ~82 serv", servings:82 },
+      { label:"16 oz jar → ~94 serv", servings:94 }
+    ],
+    "Peanut oil": [
+      { label:"16 oz bottle → ~94 serv", servings:94 },
+      { label:"32 oz bottle → ~189 serv", servings:189 }
+    ],
+    "Avocado oil": [
+      { label:"8 oz bottle → ~47 serv", servings:47 },
+      { label:"16 oz bottle → ~94 serv", servings:94 }
+    ],
+    "Sesame oil": [
+      { label:"5 oz bottle → ~29 serv", servings:29 },
+      { label:"8 oz bottle → ~47 serv", servings:47 }
+    ],
+    "Flaxseed oil": [
+      { label:"8 oz bottle → ~47 serv", servings:47 },
+      { label:"16 oz bottle → ~94 serv", servings:94 }
+    ],
+    "Walnut oil": [
+      { label:"8 oz bottle → ~47 serv", servings:47 }
+    ],
+    "Sunflower oil": [
+      { label:"16 oz bottle → ~94 serv", servings:94 },
+      { label:"32 oz bottle → ~189 serv", servings:189 }
+    ],
+    "Safflower oil": [
+      { label:"16 oz bottle → ~94 serv", servings:94 },
+      { label:"32 oz bottle → ~189 serv", servings:189 }
+    ],
+    "Grapeseed oil": [
+      { label:"16 oz bottle → ~94 serv", servings:94 },
+      { label:"24 oz bottle → ~141 serv", servings:141 }
+    ],
+    "Palm oil": [
+      { label:"16 oz jar → ~94 serv", servings:94 }
+    ],
+    "Butter/Plant butter": [
+      { label:"1 stick (4 oz) → ~16 serv", servings:16 },
+      { label:"1 lb box (4 sticks) → ~64 serv", servings:64 },
+      { label:"8 oz tub (spreadable) → ~32 serv", servings:32 }
+    ],
+    "Lard/Tallow (traditional use)": [
+      { label:"1 lb tub → ~64 serv", servings:64 },
+      { label:"8 oz tub → ~32 serv", servings:32 }
+    ],
+    "Ghee/Plant ghee": [
+      { label:"7 oz jar → ~41 serv", servings:41 },
+      { label:"13 oz jar → ~76 serv", servings:76 }
+    ],
+
+    // ── FLAVOR & HEALTH ENHANCERS: dropdown choices with servings ──
+      // =============== 🌶️ FLAVOR VEGETABLES (serving defaults: ~¼ cup chopped, or noted) ===============
+      "Garlic": [
+        { label:"Bulb (~10 cloves) → ~20 serv (½ clove)", servings:20 },
+        { label:"Bag 3 bulbs → ~60 serv", servings:60 },
+        { label:"Peeled cloves 8 oz → ~90 serv", servings:90 }
+      ],
+      "Yellow onions": [
+        { label:"1 medium → ~4 serv (¼ c chopped)", servings:4 },
+        { label:"Bag 3 lb (7–8 onions) → ~30 serv", servings:30 },
+        { label:"Bag 5 lb → ~50 serv", servings:50 }
+      ],
+      "Red onions": [
+        { label:"1 medium → ~4 serv", servings:4 },
+        { label:"Bag 2 lb (~4 onions) → ~16 serv", servings:16 }
+      ],
+      "White onions": [
+        { label:"1 medium → ~4 serv", servings:4 },
+        { label:"Bag 3 lb → ~30 serv", servings:30 }
+      ],
+      "Pearl onions": [
+        { label:"Fresh 10 oz bag → ~30 serv (3–4 pearls)", servings:30 },
+        { label:"Frozen 14 oz bag → ~40 serv", servings:40 }
+      ],
+      "Shallots": [
+        { label:"1 bulb (~40 g) → ~2 serv (2 Tbsp)", servings:2 },
+        { label:"8 oz bag (~6–7 bulbs) → ~14 serv", servings:14 }
+      ],
+      "Green onions/Scallions": [
+        { label:"Bunch (~6 stalks) → ~3 serv (¼ c ≈ 2 stalks)", servings:3 },
+        { label:"3-bunch bundle → ~9 serv", servings:9 }
+      ],
+      "Chives": [
+        { label:"Fresh bunch (~1 oz) → ~8 serv (2 Tbsp)", servings:8 },
+        { label:"Clamshell (~0.75 oz) → ~6 serv", servings:6 }
+      ],
+      "Jalapeños/Chipotle peppers": [
+        { label:"Fresh jalapeño (1 pepper) → 1 serv (¼ c sliced)", servings:1 },
+        { label:"1 lb fresh (~8–10 peppers) → ~9 serv", servings:9 },
+        { label:"Dried chipotle 2 oz (~20 pieces) → ~20 serv (1 pc)", servings:20 }
+      ],
+      "Serrano/Seco chiles": [
+        { label:"Fresh serrano (1 pepper) → 1 serv (2 Tbsp sliced)", servings:1 },
+        { label:"8 oz fresh (~10–12) → ~11 serv", servings:11 },
+        { label:"Dried serrano (seco) 1 oz (~40) → ~40 serv (1 pc)", servings:40 }
+      ],
+      "Habaneros": [
+        { label:"Fresh 1 pepper → 2 serv (1 Tbsp minced)", servings:2 },
+        { label:"6 oz pack (~8–9) → ~17 serv", servings:17 }
+      ],
+      "Poblano/Ancho chiles": [
+        { label:"Fresh poblano 1 pepper → ~2 serv (¼ c chopped)", servings:2 },
+        { label:"Dried ancho 3 oz (~12 peppers) → ~24 serv", servings:24 }
+      ],
+      "Mirasol/Guajillo chiles": [
+        { label:"Dried guajillo 2 oz (~10 peppers) → ~20 serv (½ pepper)", servings:20 },
+        { label:"Dried guajillo 4 oz (~20 peppers) → ~40 serv", servings:40 }
+      ],
+      "Chile de Árbol": [
+        { label:"Fresh 1 pepper → 1 serv", servings:1 },
+        { label:"Dried 1 oz (~50 peppers) → ~50 serv (1 pc)", servings:50 }
+      ],
+      "Cayenne chiles": [
+        { label:"Fresh 1 pepper → ~2–3 serv", servings:3 },
+        { label:"8 oz fresh (~20 peppers) → ~50 serv (½ pepper)", servings:50 }
+      ],
+      "Anaheim/Colorado chilies": [
+        { label:"Fresh Anaheim 1 pepper → ~2 serv (¼ c chopped)", servings:2 },
+        { label:"1 lb fresh (~5–6 peppers) → ~11 serv", servings:11 }
+      ],
+    
+      // =============== 🌿 FRESH HERBS (serving = 2 Tbsp fresh unless noted) ===============
+      "Curly parsley": [
+        { label:"Bunch (~2 oz) → ~16 serv", servings:16 }
+      ],
+      "Flat-leaf/Italian parsley": [
+        { label:"Bunch (~2 oz) → ~16 serv", servings:16 }
+      ],
+      "Cilantro/Coriander leaf": [
+        { label:"Bunch (~2 oz) → ~16 serv", servings:16 }
+      ],
+      "Peppermint": [
+        { label:"Clamshell (~1 oz) → ~8 serv", servings:8 }
+      ],
+      "Spearmint": [
+        { label:"Clamshell (~1 oz) → ~8 serv", servings:8 }
+      ],
+      "Lemon balm": [
+        { label:"Clamshell (~1 oz) → ~8 serv", servings:8 }
+      ],
+      "Sweet basil": [
+        { label:"Bunch (~2 oz) → ~8 serv", servings:8 }
+      ],
+      "Thai basil": [
+        { label:"Bunch (~2 oz) → ~8 serv", servings:8 }
+      ],
+      "Holy basil/Tulsi": [
+        { label:"Bunch (~2 oz) → ~8 serv", servings:8 }
+      ],
+      "Sage": [
+        { label:"Clamshell (~1 oz) → ~8 serv", servings:8 }
+      ],
+      "Oregano": [
+        { label:"Clamshell (~1 oz) → ~8 serv", servings:8 }
+      ],
+      "Thyme": [
+        { label:"Clamshell (~1 oz) → ~8 serv", servings:8 }
+      ],
+      "Dill": [
+        { label:"Bunch (~1 oz) → ~8 serv", servings:8 }
+      ],
+      "Epazote": [
+        { label:"Bunch (~1 oz) → ~8 serv", servings:8 }
+      ],
+      "Lemongrass": [
+        { label:"1 stalk (~40 g) → ~2 serv (chopped)", servings:2 },
+        { label:"Bundle (3 stalks) → ~6 serv", servings:6 }
+      ],
+      "Chervil": [
+        { label:"Clamshell (~1 oz) → ~8 serv", servings:8 }
+      ],
+    
+      // =============== 🧂 DRIED SPICES (typical ½–1 tsp per use unless noted) ===============
+      "Rosemary": [
+        { label:"Jar 1 oz → ~55 serv", servings:55 }
+      ],
+      "Bay leaf": [
+        { label:"Jar 0.2 oz (~15 leaves) → 15 serv", servings:15 }
+      ],
+      "Marjoram": [
+        { label:"Jar 0.5 oz → ~25 serv", servings:25 }
+      ],
+      "Paprika": [
+        { label:"Jar 1.8 oz → ~100 serv (½ tsp)", servings:100 }
+      ],
+      "Fennel seeds": [
+        { label:"Jar 1.5 oz → ~85 serv (½ tsp)", servings:85 }
+      ],
+      "Tarragon": [
+        { label:"Jar 0.7 oz → ~35 serv", servings:35 }
+      ],
+      "Allspice": [
+        { label:"Jar 1.5 oz → ~85 serv (½ tsp)", servings:85 }
+      ],
+      "Pepper": [
+        { label:"Black pepper (ground) 2 oz → ~110 serv (½ tsp)", servings:110 },
+        { label:"Whole peppercorns 2 oz → ~110 serv", servings:110 }
+      ],
+      "Cumin": [
+        { label:"Jar 1.5 oz → ~85 serv (½ tsp)", servings:85 }
+      ],
+      "Coriander seed": [
+        { label:"Jar 1.5 oz → ~85 serv (½ tsp)", servings:85 }
+      ],
+      "Turmeric": [
+        { label:"Jar 1.5 oz → ~85 serv (½ tsp)", servings:85 }
+      ],
+      "Ginger": [
+        { label:"Ground 1.5 oz → ~85 serv (½ tsp)", servings:85 }
+      ],
+      "Cinnamon": [
+        { label:"Jar 2 oz → ~110 serv (½ tsp)", servings:110 }
+      ],
+      "Nutmeg": [
+        { label:"Ground 1.5 oz → ~250 serv (¼ tsp)", servings:250 }
+      ],
+      "Cloves": [
+        { label:"Ground 1.5 oz → ~250 serv (⅛ tsp)", servings:250 }
+      ],
+      "Cardamom": [
+        { label:"Ground 1.5 oz → ~170 serv (¼ tsp)", servings:170 }
+      ],
+    
+      // =============== 🍯 BOOSTERS (serving = 1 tsp unless noted) ===============
+      "Honey": [
+        { label:"Bottle 12 oz → ~85 serv", servings:85 }
+      ],
+      "Maple syrup": [
+        { label:"Bottle 8 oz → ~48 serv", servings:48 }
+      ],
+      "Agave nectar": [
+        { label:"Bottle 11.75 oz → ~70 serv", servings:70 }
+      ],
+      "Molasses": [
+        { label:"Jar 12 oz → ~85 serv", servings:85 }
+      ],
+      "Kimchi/Sauerkraut": [
+        { label:"Jar 16 oz → ~16 serv (¼ c)", servings:16 }
+      ],
+      "Vinegars": [
+        { label:"Bottle 16 oz → ~32 serv (½ Tbsp)", servings:32 }
+      ],
+      "Olives": [
+        { label:"Jar 6 oz drained (≈12 Tbsp) → ~12 serv (1 Tbsp)", servings:12 },
+        { label:"Cup 4 oz sliced (≈8 Tbsp) → ~8 serv", servings:8 }
+      ],
+      "Miso": [
+        { label:"Tub 16 oz → ~96 serv (1 tsp)", servings:96 }
+      ],
+      "Green tea": [
+        { label:"Box 20 bags → 20 serv", servings:20 }
+      ],
+      "Black tea": [
+        { label:"Box 20 bags → 20 serv", servings:20 }
+      ],
+      "Coffee": [
+        { label:"Ground 12 oz (~340 g) → ~68 serv (1 Tbsp/brew)", servings:68 }
+      ],
+      "Yerba mate": [
+        { label:"Loose 8 oz → ~32 serv (1 Tbsp/brew)", servings:32 }
+      ],
+      "Dark chocolate (70%+)": [
+        { label:"Bar 3 oz (~12 squares) → ~12 serv (1 square)", servings:12 }
+      ],
+      "Cacao nibs/Cocoa powder": [
+        { label:"Cacao nibs 8 oz → ~45 serv (1 Tbsp)", servings:45 },
+        { label:"Cocoa powder 8 oz → ~90 serv (½ Tbsp)", servings:90 }
+      ],
+      "Dried fruits": [
+        { label:"Mixed dried fruit 8 oz → ~16 serv (¼ c)", servings:16 }
+      ],
+      "Herbal teas/Kombucha": [
+        { label:"Herbal tea box 20 bags → 20 serv", servings:20 },
+        { label:"Kombucha 16 oz bottle → 2 serv (8 oz)", servings:2 }
+      ]
+    };
+
+
+    
+    // Return array of { label, servings }
+    function getChoicesFor(subKey, name){
+      const fromSpecific = CHOICES_SPECIFIC[name];
+      if (fromSpecific)
+        return fromSpecific.map(x => (typeof x === "string" ? { label:x, servings:1 } : x));
+    
+      const fromDefault = CHOICES_DEFAULT[subKey];
+      if (fromDefault)
+        // FIX: keep {label, servings} objects as-is
+        return fromDefault.map(x => (typeof x === "string" ? { label:x, servings:1 } : x));
+    
+      return [{ label: "Add 1", servings: 1 }];
+    }
+
+
+    // (optional helpers)
+    function getFlavorList(key){ return FLAVOR_CENTER[key] || []; }
+    </script>
+
+
+    <script>
+    const STORAGE_KEY = "fdng_state_v1";
+    
+    // ---------- DATA (assumes your MASTER/PROTEINS/GRAINS_ROOTS constants exist elsewhere) ----------
+    const DEFAULT_SPLITS = {
+      // 🥬 Vegetables = 49 (17/12/10/10)
+      vegetables: { 
+        totalPerPerson: 49, 
+        subs: { leafy: 17, cruciferous: 12, orange: 10, other: 10 } 
+      },
+    
+      // 🍎 Fruits = 34 (10/10/7/7)
+      fruits:     { 
+        totalPerPerson: 34, 
+        subs: { berries: 10, citrus: 10, carotenoid_lycopene: 7, other: 7 } 
+      },
+    
+      // 🍗 Proteins ≈45 (Complete 20 (15 active + 5 optional), Legumes 14, Dairy 10, Seafood 0–5 optional)
+      // Implementation note: we’ll keep a 45 total and let 'seafood' be user-switchable 0–5 later.
+        proteins:   { 
+          totalPerPerson: 45, 
+          subs: { legumes_pulses: 14, complete: 15, dairy: 10, seafood: 5 } // base case when seafood = ON
+        },
+
+    
+      // 🥣 Shoots / Roots / Seeds = 73 (21/21/21/10)
+      grains:     { 
+        totalPerPerson: 73, 
+        subs: { grasses: 21, nuts_seeds: 10, roots_tubers: 21, oils_fats: 21 } 
+      },
+    
+      // 🌿 Center picks (encouraged weekly picks, not “servings”)
+      center:     { 
+        totalPerPerson: 0,  
+        subs: { flavor_vegetables: 0, fresh_herbs: 0, dried_spices: 0, boosters: 0 }, 
+        picks: { flavor_vegetables:3, fresh_herbs:2, dried_spices:1, boosters:1 } 
+      }
+    };
+
+    
+    // map for display names
+    const LABELS = {
+      vegetables: "Vegetables", fruits:"Fruits", proteins:"Proteins", grains:"Shoots / Roots / Seeds", center:"Flavor & Health Enhancers",
+      leafy:"Leafy Greens", cruciferous:"Cruciferous & Brassicas", orange:"Orange Vegetables", other:"Other Vegetables",
+      berries:"Berries & Anthocyanins", citrus:"Citrus", carotenoid_lycopene:"Orange/Red Fruits",
+      legumes_pulses:"Legumes & Pulses", complete:"Complete Proteins", dairy:"Dairy", seafood:"Seafood",
+      grasses:"Grains", nuts_seeds:"Nuts & Seeds", roots_tubers:"Roots / Tubers / Starches", oils_fats:"Oils & Fats",
+      flavor_vegetables:"Flavor Vegetables", fresh_herbs:"Fresh Herbs & Chiles", dried_spices:"Dried Herbs & Spices", boosters:"Sweeteners/Ferments/Beverages"
+    };
+
+    
+    // The walkthrough order (category -> subkeys). We start at Vegetables->leafy (1.1).
+    const WALK = [
+      { cat:"vegetables", subs:["leafy","cruciferous","orange","other"] },
+      { cat:"fruits",     subs:["berries","citrus","carotenoid_lycopene","other"] },
+      { cat:"proteins",   subs:["legumes_pulses","complete","dairy","seafood"] },
+      { cat:"grains",     subs:["grasses","nuts_seeds","roots_tubers","oils_fats"] },
+      { cat:"center",     subs:["flavor_vegetables","fresh_herbs","dried_spices","boosters"] } // special handling later
+    ];
+    
+    // ---------- STATE ----------
+    const defaultState = {
+      version: 2,
+      householdSize: null,
+      intensity: null, // 0.25 | 0.5 | 1
+      protein: { willingSeafood: true }, // if false, we reallocate seafood target to legumes+complete
+      progress: {},   // per subcategory servings map, e.g., { "leafy": { "Spinach": 3, ... } }
+      shopping: {},   // aggregated shopping list (name -> servings)
+      shoppingDetails: {}, // NEW: { subKey: { ItemName: [ "Fresh clamshell", ... ] } }
+      lastSaved: null
+    };
+    let state = loadState();
+    
+    // ---------- HELPERS ----------
+    function loadState(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return structuredClone(defaultState);
+      try{
+        const parsed = JSON.parse(raw);
+        return Object.assign(structuredClone(defaultState), parsed);
+      }catch{ return structuredClone(defaultState); }
+    }
+    function saveState(){
+      state.lastSaved = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      document.getElementById("persistBadge").textContent = "Saved";
+      renderDevState();
+    }
+    
+    function renderDevState(){ document.getElementById("devState").textContent = JSON.stringify(state, null, 2); }
+    
+    // UI router
+    function show(id){
+      [
+        "screen-home",
+        "screen-household",
+        "screen-next",
+        "screen-intensity",
+        "screen-subcat",
+        "screen-shopping"   // ← add this
+      ].forEach(s=>{
+        const el = document.getElementById(s);
+        if(el) el.classList.toggle("active", s===id);
+      });
+    }
+
+    
+    // Compute subcategory absolute target (FDNG-servings), scaled by household + intensity
+    function subTarget(catKey, subKey){
+      // Center uses "mandatory picks per week"
+      if(catKey === "center"){
+        const picks = DEFAULT_SPLITS.center.picks[subKey] || 0;
+        const raw = picks * (state.householdSize || 1) * (state.intensity || 1);
+        return Math.ceil(raw);
+      }
+      const cfg = DEFAULT_SPLITS[catKey];
+      const total = cfg.totalPerPerson * (state.householdSize||1) * (state.intensity||1);
+      const split = (catKey==="proteins" ? proteinSplitsEffective()[subKey] : cfg.subs[subKey]) || 0;
+      const sumSplits = Object.values(catKey==="proteins" ? proteinSplitsEffective() : cfg.subs).reduce((a,b)=>a+b,0) || 1;
+      const raw = total * (split / sumSplits);
+      return Math.ceil(raw); // round up per your instruction
+    }
+
+    
+    // Seafood reallocation: move seafood per-person share to legumes+complete (half/half)
+    function proteinSplitsEffective(){
+      // Base: legumes 14, complete 15, dairy 10, seafood 5  => total 45
+      const base = { legumes_pulses: 14, complete: 15, dairy: 10, seafood: 5 };
+    
+      // If seafood is OFF, move all 5 servings to COMPLETE (not split with legumes)
+      if (state.protein && state.protein.willingSeafood === false) {
+        base.complete += base.seafood; // +5
+        base.seafood = 0;
+      }
+      return base;
+    }
+
+    // Sum servings logged in a subcategory
+    function currentServings(subKey){
+      const m = state.progress?.[subKey] || {};
+      return Object.values(m).reduce((a,b)=>a + Number(b||0), 0);
+    }
+    
+    // Is this subcategory at/over its target?
+    function quotaReached(catKey, subKey){
+      return currentServings(subKey) >= subTarget(catKey, subKey);
+    }
+    
+    // Have ALL subcategories met their targets?
+    function allCategoriesComplete(){
+      for(const {cat, subs} of WALK){
+        for(const sub of subs){
+          // If a sub has a positive target, require it.
+          const t = subTarget(cat, sub);
+          if(t > 0 && !quotaReached(cat, sub)) return false;
+        }
+      }
+      return true;
+    }
+
+    
+    // Provide arrays (fallbacks if MASTER not present)
+    function getList(catKey, subKey){
+      try{
+        if(catKey==="vegetables") return (MASTER?.vegetables?.[subKey]) || [];
+        if(catKey==="fruits")     return (MASTER?.fruits?.[subKey]) || [];
+        if(catKey==="proteins"){
+          if(subKey==="legumes_pulses") return PROTEINS?.legumes_pulses || [];
+          if(subKey==="complete")       return PROTEINS?.complete || [];
+          if(subKey==="dairy")          return PROTEINS?.dairy || [];
+          if(subKey==="seafood")        return PROTEINS?.seafood || [];
+        }
+        if(catKey==="grains"){
+          if(subKey==="grasses")      return GRAINS_ROOTS?.grasses || [];
+          if(subKey==="nuts_seeds")   return GRAINS_ROOTS?.nuts_seeds || [];
+          if(subKey==="roots_tubers") return GRAINS_ROOTS?.roots_tubers || [];
+          if(subKey==="oils_fats")    return GRAINS_ROOTS?.oils_fats || [];
+        }
+        if(catKey==="center") return FLAVOR_CENTER?.[subKey] || [];
+      }catch{}
+      // Dummy placeholder 16 if lists missing
+      return Array.from({length:16}, (_,i)=>`${LABELS[subKey]||"Item"} ${i+1}`);
+    }
+    
+    // Aggregate shopping list from state.progress
+    function recomputeShopping(){
+      state.shopping = {};
+      for(const [subKey, items] of Object.entries(state.progress||{})){
+        for(const [name,val] of Object.entries(items||{})){
+          if(!val) continue;
+          state.shopping[name] = (state.shopping[name]||0) + val;
+        }
+      }
+    }
+
+    function renderShoppingList(){
+      // make sure totals are fresh
+      recomputeShopping();
+    
+      // summary
+      const totalItems = Object.keys(state.shopping).length;
+      const totalServs = Object.values(state.shopping).reduce((a,b)=>a+Number(b||0),0);
+      document.getElementById("shoppingSummary").textContent =
+        `${totalItems} items • ${totalServs} total servings`;
+    
+      // table (name • servings • picked sizes)
+      const rows = Object.entries(state.shopping)
+        .sort((a,b)=>a[0].localeCompare(b[0]))
+        .map(([name, serv])=>{
+          // collect any purchase labels we recorded
+          const labels = [];
+          for(const subKey in state.shoppingDetails){
+            const m = state.shoppingDetails[subKey]?.[name];
+            if(m && m.length) labels.push(...m);
+          }
+          const note = labels.length ? labels.join(" • ") : "—";
+          return `<tr>
+            <td>${name}</td>
+            <td style="text-align:right">${Number(serv.toFixed ? serv.toFixed(2) : serv)}</td>
+            <td>${note}</td>
+          </tr>`;
+        }).join("");
+    
+      const tableHtml = `
+        <table style="width:100%; border-collapse:collapse">
+          <thead>
+            <tr>
+              <th style="text-align:left; border-bottom:1px solid var(--border)">Item</th>
+              <th style="text-align:right; border-bottom:1px solid var(--border)">Servings</th>
+              <th style="text-align:left; border-bottom:1px solid var(--border)">Chosen package(s)</th>
+            </tr>
+          </thead>
+          <tbody>${rows || `<tr><td colspan="3">No items yet.</td></tr>`}</tbody>
+        </table>`;
+      document.getElementById("shoppingTableWrap").innerHTML = tableHtml;
+    
+      // wire toolbar actions (idempotent: re-assign each time)
+      document.getElementById("backToEditBtn").onclick = () => show("screen-subcat");
+    
+      document.getElementById("copyListBtn").onclick = () => {
+        const lines = Object.entries(state.shopping)
+          .sort((a,b)=>a[0].localeCompare(b[0]))
+          .map(([n,s])=>`${n} — ${s} servings`);
+        navigator.clipboard.writeText(lines.join("\n"));
+      };
+
+      document.getElementById("downloadCsvBtn").onclick = () => {
+        const rows = [["Item","Servings","Chosen package(s)"]];
+        for (const [name, serv] of Object.entries(state.shopping).sort((a,b)=>a[0].localeCompare(b[0]))) {
+          const labels = [];
+          for (const subKey in state.shoppingDetails) {
+            const m = state.shoppingDetails[subKey]?.[name];
+            if (m && m.length) labels.push(...m);
+          }
+          rows.push([name, serv, labels.join(" • ") || "—"]);
+        }
+        const csv = rows.map(r =>
+          r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")
+        ).join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "shopping-list.csv";
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        a.remove();
+      };
+
+      document.getElementById("printBtn").onclick = () => {
+        window.print();
+      };
+
+      // show shopping screen
+      show("screen-shopping");
+    } // ← end of renderShoppingList()
+
+
+    function addChoice(subKey, name, choice){
+      if(!state.shoppingDetails[subKey]) state.shoppingDetails[subKey]={};
+      if(!state.shoppingDetails[subKey][name]) state.shoppingDetails[subKey][name]=[];
+      state.shoppingDetails[subKey][name].push(choice);
+    }
+    
+    function renderChoiceLog(container, subKey, name){
+      const list = (state.shoppingDetails[subKey] && state.shoppingDetails[subKey][name]) || [];
+      container.innerHTML = list.length ? `<div class="pill" title="${list.join(' • ')}">${list.length} added</div>` : "";
+    }
+ 
+    // ---------------- Card factory (uses onAdd) ----------------
+    function createItemCard({ subKey, name, options, onAdd }) {
+      const el = document.createElement("div");
+      el.className = "cardlet";
+    
+      // title
+      const title = document.createElement("div");
+      title.className = "food-name";
+      title.textContent = name;
+      el.appendChild(title);
+
+    // image under the title, above the dropdown
+    const isVeg = ["leafy", "cruciferous", "orange", "other"].includes(subKey);
+    if (isVeg) {
+        // picture (if we have one for this item) — place under the title
+        const imgSrc = getImgFor(SUBCAT_TO_CAT[subKey] || 'vegetables', subKey, name);
+        if (imgSrc) {
+          const img = document.createElement("img");
+          img.src = imgSrc;
+          img.alt = name;
+          img.className = "pic";
+          el.appendChild(img); // right after the title, before the dropdown block that comes later
+        }
+    }
+    
+      // --- pre-queued badge (Step 4 uses this; we also refresh it after adding) ---
+      const pre = document.createElement("div");
+      const already = getQueuedServingsFor(subKey, name);
+      pre.className = "pill";
+      pre.style.marginTop = "-2px";
+      pre.textContent = already ? `pre-queued: ${already}` : "";
+      el.appendChild(pre);
+    
+      // dropdown
+      const select = document.createElement("select");
+      select.className = "qty";
+      options.forEach((opt, i) => {
+        const o = document.createElement("option");
+        o.value = String(i);
+        o.textContent = opt.label;
+        select.appendChild(o);
+      });
+      el.appendChild(select);
+    
+      // (optional) hint if item is split across sections
+      if (SPLIT_RULES[name]) {
+        const hint = document.createElement("div");
+        hint.className = "dim";
+        hint.style.fontSize = "12px";
+        hint.textContent = "Counts partly here and partly in another section (pre-queued).";
+        el.appendChild(hint);
+      }
+    
+      // tiny area to show "N added" pills via renderChoiceLog
+      const log = document.createElement("div");
+      el.appendChild(log);
+      renderChoiceLog(log, subKey, name);
+    
+      // add button
+      const btn = document.createElement("button");
+      btn.className = "btn";
+      btn.textContent = "Add";
+      btn.onclick = () => {
+        const idx = Number(select.value) || 0;
+        const chosen = options[idx];
+        onAdd(chosen);
+    
+        // refresh this card's log + pre-queued badge
+        renderChoiceLog(log, subKey, name);
+        const nowQueued = getQueuedServingsFor(subKey, name);
+        pre.textContent = nowQueued ? `pre-queued: ${nowQueued}` : "";
+      };
+      el.appendChild(btn);
+    
+      return el;
+    }
+    
+    // --- Helpers used by renderSubcategory ---------------------------------------
+    
+    // record which package size/label was added (per subKey + item)
+    function addChoice(subKey, name, label){
+      if(!state.shoppingDetails[subKey]) state.shoppingDetails[subKey] = {};
+      if(!state.shoppingDetails[subKey][name]) state.shoppingDetails[subKey][name] = [];
+      state.shoppingDetails[subKey][name].push(label);
+      saveState();
+    }
+    
+    // no-op fallback if your app already defines createItemCard elsewhere
+    // (delete this if you already have your real card component)
+    if (typeof createItemCard !== "function") {
+      window.createItemCard = ({ name, options, onAdd }) => {
+        const el = document.createElement("div");
+        el.className = "cardlet";
+        el.innerHTML = `
+          <div class="food-name">${name}</div>
+          <select class="qty">
+            ${options.map((o,i)=>`<option value="${i}">${o.label}</option>`).join("")}
+          </select>
+          <button class="btn">Add</button>
+        `;
+        const sel = el.querySelector("select");
+        el.querySelector("button").onclick = () => {
+          const o = options[Number(sel.value)] || { label:"Add 1", servings:1 };
+          onAdd(o);
+        };
+        return el;
+      };
+    }
+
+    
+    // Map a subKey to its category
+    const SUBCAT_TO_CAT = {
+      leafy:"vegetables", cruciferous:"vegetables", orange:"vegetables", other:"vegetables",
+      berries:"fruits", citrus:"fruits", carotenoid_lycopene:"fruits", 
+      legumes_pulses:"proteins", complete:"proteins", dairy:"proteins", seafood:"proteins",
+      grasses:"grains", nuts_seeds:"grains", roots_tubers:"grains", oils_fats:"grains",
+      flavor_vegetables:"center", fresh_herbs:"center", dried_spices:"center", boosters:"center"
+    };
+    
+    // How many servings are already queued for this item in this subKey?
+    function getQueuedServingsFor(subKey, name){
+      const m = state.progress?.[subKey] || {};
+      return Number(m[name] || 0);
+    }
+    
+    // Add servings to state.progress for a specific subKey/name
+    function addServingsTo(subKey, name, servings){
+      if(!state.progress[subKey]) state.progress[subKey] = {};
+      state.progress[subKey][name] = (Number(state.progress[subKey][name] || 0) + servings);
+    }
+    
+    // Handles cross-listing (SPLIT_RULES) and normal adds
+    function routeAndAdd(name, chosen, sourceSubKey){
+      const servings = Number(chosen.servings || 0);
+      if(!servings) return;
+    
+      // log the exact package picked (for shopping table)
+      addChoice(sourceSubKey, name, chosen.label);
+    
+      const rules = SPLIT_RULES[name];
+      if(!rules){                      // simple case: all goes to the current subKey
+        addServingsTo(sourceSubKey, name, servings);
+        saveState();
+        return;
+      }
+    
+      // split case
+      let remaining = servings;
+      for(const r of rules){
+        let targetSub = r.target;
+        // allow targets like "fruits.other"
+        if(targetSub.includes(".")){
+          const [, subOnly] = targetSub.split(".");
+          targetSub = subOnly;
+        }
+        const part = Math.round(servings * r.weight * 1000) / 1000; // keep decimals tidy
+        addServingsTo(targetSub, name, part);
+        remaining -= part;
+      }
+      // if there’s a rounding crumb, keep it in the source subKey
+      if(Math.abs(remaining) > 1e-9){
+        addServingsTo(sourceSubKey, name, remaining);
+      }
+      saveState();
+    }
+    
+    // Update the quota pill and grey-out/lock cards if quota hit
+    function renderQuotaAndLocks(catKey, subKey){
+      const target = subTarget(catKey, subKey);
+      const current = currentServings(subKey);
+      const pill = document.getElementById("quotaPill");
+      pill.textContent = `${Math.min(current, target)} / ${target} chosen`;
+    
+      const grid = document.getElementById("grid");
+      const hit = quotaReached(catKey, subKey);
+      Array.from(grid.children).forEach(card => {
+        const btn = card.querySelector("button.btn");
+        const sel = card.querySelector("select.qty");
+        if(hit){
+          card.classList.add("locked");
+          if(btn) btn.disabled = true;
+          if(sel) sel.disabled = true;
+        }else{
+          card.classList.remove("locked");
+          if(btn) btn.disabled = false;
+          if(sel) sel.disabled = false;
+        }
+      });
+    }
+    
+    // Find next subcategory in WALK
+    function findNextSubcategory(catKey, subKey){
+      for(const step of WALK){
+        if(step.cat !== catKey) continue;
+        const idx = step.subs.indexOf(subKey);
+        if(idx === -1) break;
+        // next in same category
+        if(idx + 1 < step.subs.length) return { cat: catKey, sub: step.subs[idx+1] };
+        // next category's first sub
+        const curIdx = WALK.findIndex(w => w.cat === catKey);
+        if(curIdx !== -1 && curIdx + 1 < WALK.length){
+          return { cat: WALK[curIdx+1].cat, sub: WALK[curIdx+1].subs[0] };
+        }
+      }
+      return null;
+    }
+    
+    // Find previous subcategory in WALK (for Back)
+    function findPrevSubcategory(catKey, subKey){
+      for(const step of WALK){
+        if(step.cat !== catKey) continue;
+        const idx = step.subs.indexOf(subKey);
+        if(idx === -1) break;
+        if(idx - 1 >= 0) return { cat: catKey, sub: step.subs[idx-1] };
+        const curIdx = WALK.findIndex(w => w.cat === catKey);
+        if(curIdx > 0){
+          const prev = WALK[curIdx-1];
+          return { cat: prev.cat, sub: prev.subs[prev.subs.length-1] };
+        }
+      }
+      return null;
+    }
+    
+    // Reset just this subcategory’s picks
+    function resetSubcategory(subKey){
+      if(state.progress?.[subKey]){
+        delete state.progress[subKey];
+        saveState();
+      }
+    }
+    
+    // ---------------------------------------------------------------------------
+    // ---------------- Subcategory renderer (wires onAdd -> routeAndAdd) --------
+    function renderSubcategory(catKey, subKey){
+      // header
+      document.getElementById("breadcrumb").textContent = `${LABELS[catKey]} • ${LABELS[subKey]}`;
+      document.getElementById("subcatTitle").textContent = LABELS[subKey] || subKey;
+      document.getElementById("subcatHint").textContent =
+        catKey === "center"
+          ? "Pick your weekly flavor/health enhancers. These are weekly ‘picks’, not strict servings."
+          : "Allocate servings for this subcategory. Rounds up; when the quota is reached, cards grey out.";
+    
+      // grid
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+    
+      const items = getList(catKey, subKey);
+      items.forEach(name => {
+        const options = getChoicesFor(subKey, name);
+        const card = createItemCard({
+          subKey,
+          name,
+          options,
+          onAdd: (opt) => {
+            routeAndAdd(name, opt, subKey);
+            recomputeShopping();
+            renderQuotaAndLocks(catKey, subKey);
+            // — Reset modal wiring (keeps your “Are you sure?”) —
+            const resetBtn = document.getElementById("resetBtn");
+            const resetModal = document.getElementById("resetModal");
+            const cancelResetBtn = document.getElementById("cancelResetBtn");
+            const confirmResetBtn = document.getElementById("confirmResetBtn");
+            
+            // show modal
+            if (resetBtn) {
+              resetBtn.onclick = () => {
+                if (resetModal) resetModal.classList.remove("hidden");
+              };
+            }
+            // hide modal (cancel)
+            if (cancelResetBtn) {
+              cancelResetBtn.onclick = () => {
+                if (resetModal) resetModal.classList.add("hidden");
+              };
+            }
+            // confirm reset (clear state, go home)
+            if (confirmResetBtn) {
+              confirmResetBtn.onclick = () => {
+                localStorage.removeItem(STORAGE_KEY);
+                state = structuredClone(defaultState);
+                saveState();
+                if (resetModal) resetModal.classList.add("hidden");
+                show("screen-home");
+              };
+            }
+
+          }
+        });
+        grid.appendChild(card);
+      });
+    
+      // toolbar buttons
+      const backBtn = document.getElementById("backBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const nextBtn = document.getElementById("nextBtn");
+    
+      backBtn.onclick = () => {
+        const prev = findPrevSubcategory(catKey, subKey);
+        if(prev){ renderSubcategory(prev.cat, prev.sub); }
+        else { show("screen-intensity"); } // fallback to previous screen
+      };
+    
+      resetBtn.onclick = () => {
+        resetSubcategory(subKey);
+        renderSubcategory(catKey, subKey);
+      };
+    
+      nextBtn.onclick = () => {
+        if(allCategoriesComplete()){
+          renderShoppingList();
+          return;
+        }
+        const nxt = findNextSubcategory(catKey, subKey);
+        if(nxt){ renderSubcategory(nxt.cat, nxt.sub); }
+        else { renderShoppingList(); } // if at end
+      };
+    
+      // initial quota/locks
+      renderQuotaAndLocks(catKey, subKey);
+    
+      // ensure we're on the right screen
+      show("screen-subcat");
+    }
+
+
+
+       
+    // -------- Split/route helpers (use state.progress + state.shoppingDetails) --------
+    
+    // Map dotted keys like "fruits.other" → actual subKey we store in state.progress.
+    // You already store fruits subkeys as just "berries","citrus","carotenoid_lycopene","other".
+    function normalizeTargetKey(target){
+      // Allow "fruits.other" style but store as plain "other"
+      const dot = target.indexOf(".");
+      if (dot !== -1) {
+        const tail = target.slice(dot + 1);
+        return tail || target; // e.g., "other"
+      }
+      return target;
+    }
+    
+    
+    // Find the next {cat, sub} in WALK; returns null if at the end
+    function findNextSubcategory(catKey, subKey){
+      for(let i=0;i<WALK.length;i++){
+        if(WALK[i].cat !== catKey) continue;
+        const j = WALK[i].subs.indexOf(subKey);
+        if(j === -1) break;
+        // next in same category
+        if(j+1 < WALK[i].subs.length) return { cat: catKey, sub: WALK[i].subs[j+1] };
+        // first of next category
+        if(i+1 < WALK.length) return { cat: WALK[i+1].cat, sub: WALK[i+1].subs[0] };
+        return null; // end
+      }
+      return null;
+    }
+
+    
+    // Add servings into your canonical progress structure and keep choice label trail
+    function addToProgress(subKey, itemName, servings, choiceLabel){
+      if (!servings) return;
+      const key = normalizeTargetKey(subKey);
+      state.progress[key] ??= {};
+      state.progress[key][itemName] = (state.progress[key][itemName] || 0) + servings;
+    
+      // reuse your existing purchase-log pattern
+      if(!state.shoppingDetails[key]) state.shoppingDetails[key] = {};
+      (state.shoppingDetails[key][itemName] ??= []).push(
+        `${choiceLabel} (+${Number(servings.toFixed(2))} serv${servings!==1 ? "s":""})`
+      );
+    }
+    
+    // Split-aware add: call this from your per-card "Add" button
+    function routeAndAdd(itemName, choiceObj, currentSubKey, { forceToCurrent = false } = {}){
+      const baseServings = Number(choiceObj.servings) || 0;
+      if (!baseServings) return;
+    
+      const rule = (!forceToCurrent && SPLIT_RULES[itemName]) || null;
+    
+      if (rule && rule.length){
+        const totalWeight = rule.reduce((s, r) => s + (r.weight || 0), 0) || 1;
+        rule.forEach(({ target, weight }) => {
+          const alloc = baseServings * ((weight || 0) / totalWeight);
+          addToProgress(target, itemName, alloc, choiceObj.label);
+        });
+      } else {
+        addToProgress(currentSubKey, itemName, baseServings, choiceObj.label);
+      }
+    
+      recomputeShopping();
+      saveState();
+    }
+    
+    // For UI: show “pre-queued” when something was credited from another screen
+    function getQueuedServingsFor(subKey, itemName){
+      const key = normalizeTargetKey(subKey);
+      const v = state.progress?.[key]?.[itemName] || 0;
+      return Number(v.toFixed(2));
+    }
+
+    function renderQuotaAndLocks(catKey, subKey){
+      const target = subTarget(catKey, subKey);
+      const have = Math.ceil(
+        Object.values(state.progress[subKey] || {}).reduce((a,b)=>a+b,0)
+      );
+      const pill = document.getElementById("quotaPill");
+      pill.textContent = `${have} / ${target} chosen`;
+    
+      // (optional) lock cards when >= target
+      const grid = document.getElementById("grid");
+      const lock = have >= target;
+      Array.from(grid.children).forEach(card => {
+        card.classList.toggle("locked", lock);
+      });
+    }
+
+    // ---- Completion helpers ----
+    function isSubComplete(catKey, subKey){
+      const have = Math.ceil(Object.values(state.progress[subKey] || {}).reduce((a,b)=>a+b,0));
+      return have >= subTarget(catKey, subKey);
+    }
+    function allCategoriesComplete(){
+      return WALK.every(({cat, subs}) => subs.every(sk => isSubComplete(cat, sk)));
+    }
+    
+    // ---- Render shopping list screen ----
+    function renderShoppingList(){
+      // ensure aggregate is up to date
+      recomputeShopping();
+    
+      const totalItems = Object.keys(state.shopping).length;
+      const totalServs = Object.values(state.shopping).reduce((a,b)=>a+b,0);
+      document.getElementById("shoppingSummary").textContent =
+        `${totalItems} items • ${Math.ceil(totalServs)} total servings`;
+    
+      // build a table with optional choice trails
+      const wrap = document.getElementById("shoppingTableWrap");
+      const rows = [];
+    
+      // group by subKey for nicer display
+      const bySub = {};
+      for(const [subKey, items] of Object.entries(state.shoppingDetails || {})){
+        for(const [name, logs] of Object.entries(items || {})){
+          const total = (state.progress?.[subKey]?.[name]) || 0;
+          (bySub[subKey] ??= []).push({
+            name, total,
+            notes: logs.join(" • ")
+          });
+        }
+      }
+    
+      // fallback: if shoppingDetails missing for some items, still show them
+      for(const [name, total] of Object.entries(state.shopping)){
+        let found = false;
+        for(const group of Object.values(bySub)){ if(group.some(r=>r.name===name)){ found = true; break; } }
+        if(!found){
+          (bySub["_Other"] ??= []).push({ name, total, notes:"" });
+        }
+      }
+    
+      const subOrder = [
+        "leafy","cruciferous","orange","other",
+        "berries","citrus","carotenoid_lycopene","other",
+        "legumes_pulses","complete","dairy","seafood",
+        "grasses","nuts_seeds","roots_tubers","oils_fats",
+        "flavor_vegetables","fresh_herbs","dried_spices","boosters",
+        "_Other"
+      ];
+    
+      let html = `<table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border);">Item</th>
+            <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">Servings</th>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border);">Choices Added</th>
+          </tr>
+        </thead>
+        <tbody>`;
+    
+      subOrder.forEach(sk => {
+        if(!bySub[sk] || !bySub[sk].length) return;
+        const label = LABELS[sk] || (sk === "_Other" ? "Other" : sk);
+        html += `<tr><td colspan="3" style="padding:10px 8px; font-weight:700; background:#f9fbff; border-top:1px solid var(--border);">${label}</td></tr>`;
+        bySub[sk]
+          .sort((a,b)=> a.name.localeCompare(b.name))
+          .forEach(({name,total,notes})=>{
+            html += `<tr>
+              <td style="padding:8px; border-bottom:1px solid var(--border);">${name}</td>
+              <td style="padding:8px; text-align:right; border-bottom:1px solid var(--border);">${Number(total.toFixed(2))}</td>
+              <td style="padding:8px; border-bottom:1px solid var(--border); color:var(--muted);">${notes || ""}</td>
+            </tr>`;
+          });
+      });
+    
+      html += `</tbody></table>`;
+      wrap.innerHTML = html;
+    
+      // wire actions
+      document.getElementById("copyListBtn").onclick = () => copyShoppingToClipboard();
+      document.getElementById("downloadCsvBtn").onclick = () => downloadShoppingCsv();
+      document.getElementById("printBtn").onclick = () => window.print();
+      document.getElementById("backToEditBtn").onclick = () => show("screen-subcat");
+    
+      show("screen-shopping");
+    }
+    
+    // ---- Utilities: copy & CSV ----
+    function copyShoppingToClipboard(){
+      let lines = ["Item,Servings,Choices Added"];
+      // flatten same order as table:
+      const order = [];
+      for(const [subKey, items] of Object.entries(state.shoppingDetails || {})){
+        for(const [name, logs] of Object.entries(items || {})){
+          order.push([subKey, name, (state.progress?.[subKey]?.[name]) || 0, logs.join(" • ")]);
+        }
+      }
+      // add any items missing in details
+      for(const [name, total] of Object.entries(state.shopping)){
+        if(!order.some(x=>x[1]===name)) order.push(["_Other", name, total, ""]);
+      }
+      order.forEach(([_, name, total, notes])=>{
+        lines.push(`"${name.replace(/"/g,'""')}",${Number(total.toFixed(2))},"${(notes||"").replace(/"/g,'""')}"`);
+      });
+      const text = lines.join("\n");
+      navigator.clipboard.writeText(text).then(()=>{
+        alert("Shopping list copied to clipboard (CSV format).");
+      });
+    }
+    
+    function downloadShoppingCsv(){
+      let lines = ["Item,Servings,Choices Added"];
+      const seen = new Set();
+      for(const [subKey, items] of Object.entries(state.shoppingDetails || {})){
+        for(const [name, logs] of Object.entries(items || {})){
+          const total = (state.progress?.[subKey]?.[name]) || 0;
+          const notes = logs.join(" • ");
+          lines.push(`"${name.replace(/"/g,'""')}",${Number(total.toFixed(2))},"${notes.replace(/"/g,'""')}"`);
+          seen.add(name);
+        }
+      }
+      for(const [name, total] of Object.entries(state.shopping)){
+        if(seen.has(name)) continue;
+        lines.push(`"${name.replace(/"/g,'""')}",${Number(total.toFixed(2))},""`);
+      }
+      const blob = new Blob([lines.join("\n")], { type:"text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "FDNG-shopping-list.csv";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // ---------- DOM refs ----------
+    const startBtn=document.getElementById("startPlanBtn");
+    const backHomeBtn=document.getElementById("backHomeBtn");
+    const continueBtn=document.getElementById("continueBtn");
+    const householdInput=document.getElementById("household");
+    const hhError=document.getElementById("hh-error");
+    const summary=document.getElementById("summaryText");
+    const persistBadge=document.getElementById("persistBadge");
+    
+    // intensity screen
+    const intensityScreen = document.getElementById("screen-intensity");
+    const pillHousehold = document.getElementById("pillHousehold");
+    const toFirstSubcatBtn = document.getElementById("toFirstSubcatBtn");
+    
+    // subcategory screen
+    const screenSubcat = document.getElementById("screen-subcat");
+    const breadcrumb = document.getElementById("breadcrumb");
+    const quotaPill = document.getElementById("quotaPill");
+    const subcatTitle = document.getElementById("subcatTitle");
+    const subcatHint = document.getElementById("subcatHint");
+    const grid = document.getElementById("grid");
+    const backBtn = document.getElementById("backBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    
+    // reset modal
+    const resetModal = document.getElementById("resetModal");
+    const cancelResetBtn = document.getElementById("cancelResetBtn");
+    const confirmResetBtn = document.getElementById("confirmResetBtn");
+
+    
+    // ---------- BASIC HOUSEHOLD STEP ----------
+    function validateHH(){
+      let v=Number(householdInput.value);
+      let ok=Number.isInteger(v)&&v>=1&&v<=20;
+      hhError.classList.toggle("hidden",ok);
+      continueBtn.disabled=!ok;
+    }
+    startBtn.onclick=()=>{ show("screen-household"); validateHH(); };
+    backHomeBtn.onclick=()=>{ show("screen-home"); };
+    document.getElementById("incBtn").onclick=()=>{householdInput.value=Math.min(Number(householdInput.value)+1,20); validateHH();};
+    document.getElementById("decBtn").onclick=()=>{householdInput.value=Math.max(Number(householdInput.value)-1,1); validateHH();};
+    householdInput.oninput=validateHH;
+    continueBtn.onclick=()=>{
+      if(continueBtn.disabled) return;
+      state.householdSize=Number(householdInput.value);
+      saveState();
+      summary.textContent=`We’ll plan this week for ${state.householdSize} ${state.householdSize===1?"person":"people"}.`;
+      // Go straight to intensity
+      initIntensity();
+      show("screen-intensity");
+    };
+    
+    // ---------- INTENSITY ----------
+    function initIntensity(){
+      pillHousehold.textContent = String(state.householdSize||1);
+      // attach once
+      intensityScreen.querySelectorAll("[data-intensity]").forEach(btn=>{
+        btn.onclick = ()=>{
+          state.intensity = Number(btn.getAttribute("data-intensity"));
+          saveState();
+          toFirstSubcatBtn.disabled = false;
+        };
+      });
+      toFirstSubcatBtn.onclick=()=>{
+        // start at Vegetables -> Leafy (index 0/0)
+        route.catIndex = 0; route.subIndex = 0;
+        openCurrentSubcategory();
+      };
+    }
+    
+    // ---------- ROUTER FOR SUBCATEGORIES ----------
+    let route = { catIndex:0, subIndex:0 };
+    function openCurrentSubcategory(){
+      const node = WALK[route.catIndex];
+      const catKey = node.cat;
+      const subKey = node.subs[route.subIndex];
+    
+      // Special case: proteins effective splits if seafood off
+      if(catKey==="proteins"){
+        DEFAULT_SPLITS.proteins.subs = proteinSplitsEffective();
+      }
+    
+      const catLabel = LABELS[catKey], subLabel = LABELS[subKey];
+      subcatTitle.textContent = `${catLabel} — ${subLabel}`;
+      breadcrumb.textContent = `${catLabel} (${route.catIndex+1}/5) • ${subLabel} (${route.subIndex+1}/4)`;
+   
+    
+    // Swap hint for center ring
+    if(catKey==="center"){
+      subcatHint.textContent = "Pick items you’ll use this week (no serving math here). This subcategory is a mandatory number of picks.";
+    }else{
+      subcatHint.textContent = "Allocate servings for this subcategory. Rounds up; when the quota is reached, cards grey out.";
+    }
+
+      // Build grid
+      renderSubcategory(catKey, subKey);
+    
+      show("screen-subcat");
+    }
+    
+    // Back/Next
+    backBtn.onclick=()=>{
+      if(route.subIndex>0){ route.subIndex--; }
+      else if(route.catIndex>0){ route.catIndex--; route.subIndex = WALK[route.catIndex].subs.length-1; }
+      openCurrentSubcategory();
+    };
+    nextBtn.onclick=()=>{
+      const node = WALK[route.catIndex];
+      if(route.subIndex < node.subs.length-1){ route.subIndex++; }
+      else if(route.catIndex < WALK.length-1){ route.catIndex++; route.subIndex = 0; }
+      else {
+        alert("All categories complete! Generating shopping list next.");
+        // TODO: show shopping list screen
+      }
+      openCurrentSubcategory();
+    };
+    
+    // Reset (everything)
+    resetBtn.onclick=()=>{ resetModal.classList.remove("hidden"); };
+    cancelResetBtn.onclick=()=>{ resetModal.classList.add("hidden"); };
+    confirmResetBtn.onclick=()=>{
+      resetModal.classList.add("hidden");
+      localStorage.removeItem(STORAGE_KEY);
+      state = structuredClone(defaultState);
+      saveState();
+      show("screen-home");
+    };
+    
+    // --------- INITIALIZE ----------
+    function boot(){
+      document.getElementById("persistBadge").textContent = "Saved";
+      renderDevState();
+      // If user already set HH & intensity, resume at subcat
+      if(state.householdSize && state.intensity){
+        initIntensity();
+        openCurrentSubcategory();
+      }
+    }
+    boot();
+    function setBackgroundArt(url){
+      document.body.style.backgroundImage = `url(${url}),
+        radial-gradient(1200px 800px at 20% -10%, #f8fbff 10%, #f1f8ff 40%, transparent 60%),
+        radial-gradient(900px 600px at 120% 10%, #f7fff9 0%, #f3fbf7 45%, transparent 70%),
+        radial-gradient(800px 600px at -10% 110%, #fdf6ff 0%, #faf1ff 45%, transparent 70%)`;
+      document.body.style.backgroundSize = "cover, auto, auto, auto";
+      document.body.style.backgroundAttachment = "fixed, fixed, fixed, fixed";
+    }
+    // Example (replace with your asset path):
+    // setBackgroundArt("art/dreamy-watercolor-pastels.jpg");
+
+    // ======= STABILIZE NAV (paste near the end of the file) =======
+    (function initRouter(){
+      // 0) Guard: make sure core globals exist
+      window.route = window.route || { catIndex: 0, subIndex: 0 };
+      if (!Array.isArray(WALK)) { console.error("WALK is missing"); return; }
+      if (typeof show !== "function") { console.error("show(...) missing"); return; }
+      if (typeof quotaReached !== "function") { console.error("quotaReached(...) missing"); return; }
+    
+      // 1) Helpers
+      function atLastSubcat(){
+        const lastCat = WALK.length - 1;
+        const lastSub = WALK[lastCat].subs.length - 1;
+        return route.catIndex === lastCat && route.subIndex === lastSub;
+      }
+      function advanceRoute(){
+        const w = WALK[route.catIndex];
+        if (route.subIndex < w.subs.length - 1){ route.subIndex++; return true; }
+        if (route.catIndex < WALK.length - 1){ route.catIndex++; route.subIndex = 0; return true; }
+        return false;
+      }
+      function retreatRoute(){
+        if (route.subIndex > 0){ route.subIndex--; return true; }
+        if (route.catIndex > 0){ route.catIndex--; route.subIndex = WALK[route.catIndex].subs.length - 1; return true; }
+        return false;
+      }
+    
+      // 2) Safe open
+      window.openCurrentSubcategory = function openCurrentSubcategory(){
+        const node = WALK[route.catIndex];
+        const catKey = node.cat;
+        const subKey = node.subs[route.subIndex];
+        console.log("[open]", { route, catKey, subKey });
+    
+        if (typeof renderSubcategory === "function") {
+          renderSubcategory(catKey, subKey);
+        } else {
+          console.warn("renderSubcategory(...) not defined yet — showing screen anyway");
+          const t = document.getElementById("subcatTitle");
+          if (t) t.textContent = `${(LABELS[catKey]||catKey)} • ${(LABELS[subKey]||subKey)}`;
+        }
+        show("screen-subcat");
+        updateNextBtnUI(catKey, subKey);
+      };
+    
+      // 3) UI state for Next button
+      window.updateNextBtnUI = function updateNextBtnUI(catKey, subKey){
+        const nextBtn = document.getElementById("nextBtn");
+        if (!nextBtn) return;
+        const canLeave = quotaReached(catKey, subKey);
+        nextBtn.textContent = atLastSubcat() ? "See Shopping List →" : "Next →";
+        nextBtn.disabled = !canLeave;
+        console.log("[next-btn]", { catKey, subKey, canLeave });
+      };
+    
+      // 4) Wire buttons (exactly once)
+      const nextBtn = document.getElementById("nextBtn");
+      const backBtn = document.getElementById("backBtn");
+      const startBtn = document.getElementById("toFirstSubcatBtn");
+    
+      if (nextBtn && !nextBtn.dataset.bound){
+        nextBtn.dataset.bound = "1";
+        nextBtn.onclick = () => {
+          const node = WALK[route.catIndex];
+          const catKey = node.cat;
+          const subKey = node.subs[route.subIndex];
+          if (!quotaReached(catKey, subKey)) { console.warn("Quota not reached; staying put"); return; }
+          if (advanceRoute()) {
+            openCurrentSubcategory();
+          } else {
+            console.log("[end-of-walk] rendering shopping list");
+            if (typeof renderShoppingList === "function") renderShoppingList();
+            else show("screen-shopping");
+          }
+        };
+      }
+    
+      if (backBtn && !backBtn.dataset.bound){
+        backBtn.dataset.bound = "1";
+        backBtn.onclick = () => {
+          if (retreatRoute()) openCurrentSubcategory();
+          else show("screen-intensity");
+        };
+      }
+    
+      if (startBtn && !startBtn.dataset.bound){
+        startBtn.dataset.bound = "1";
+        startBtn.disabled = false;  // make sure it’s clickable
+        startBtn.onclick = () => { route = { catIndex: 0, subIndex: 0 }; openCurrentSubcategory(); };
+      }
+    
+      console.log("[router-ready]");
+    })();
+
+// ==== Intensity screen wiring (¼, ½, 1×) ====
+    (function () {
+      const btns = document.querySelectorAll('#screen-intensity [data-intensity]');
+      const startBtn = document.getElementById('toFirstSubcatBtn');
+      const hhPill = document.getElementById('pillHousehold');
+    
+      function selectIntensity(val){
+        state.intensity = val;
+        saveState();
+    
+        // toggle visual state
+        btns.forEach(b => {
+          const v = parseFloat(b.dataset.intensity);
+          const on = v === val;
+          b.classList.toggle('primary', on);
+          b.classList.toggle('ghost', !on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+    
+        // enable and wire “Start with Vegetables (1.1 Leafy)”
+        if (startBtn) {
+          startBtn.disabled = false;
+          startBtn.onclick = () => {
+            show('screen-subcat');
+            renderSubcategory('vegetables','leafy');
+          };
+        }
+      }
+    
+      // wire clicks (handles 0.25, 0.5, 1 exactly)
+      btns.forEach(b => {
+        b.addEventListener('click', (e) => {
+          e.preventDefault();
+          const v = parseFloat(b.dataset.intensity);
+          if (!Number.isNaN(v)) selectIntensity(v);
+        });
+      });
+
+      // show household on the pill
+      if (hhPill) hhPill.textContent = (state.householdSize ?? '—');
+    
+      // restore previously chosen intensity, if any
+      if (typeof state.intensity === 'number') selectIntensity(state.intensity);
+    })();
+
+    // ===== SAFE DROP-IN: Intensity + Reset wiring (runs after DOM is ready) =====
+    (function () {
+      // Run after the page has built the DOM
+      window.addEventListener('DOMContentLoaded', () => {
+        // ---------- INTENSITY BUTTONS (¼, ½, 1×) ----------
+        const btns = document.querySelectorAll('#screen-intensity [data-intensity]');
+        const startBtn = document.getElementById('toFirstSubcatBtn');
+        const hhPill = document.getElementById('pillHousehold');
+    
+        function selectIntensity(val){
+          // store choice
+          state.intensity = val;
+          saveState();
+    
+          // visual toggle
+          btns.forEach(b => {
+            const v = parseFloat(b.dataset.intensity);
+            const on = v === val;
+            b.classList.toggle('primary', on);
+            b.classList.toggle('ghost', !on);
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
+    
+          // enable + wire the "Start with Vegetables (1.1 Leafy)" button
+          if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.onclick = () => {
+              show('screen-subcat');
+              // first stop in your WALK is Vegetables → leafy
+              renderSubcategory('vegetables','leafy');
+            };
+          }
+        }
+    
+        // click handlers for all three buttons, including the 0.5 one
+        btns.forEach(b => {
+          b.addEventListener('click', (e) => {
+            e.preventDefault();
+            const v = parseFloat(b.dataset.intensity); // "0.25", "0.5", "1"
+            if (!Number.isNaN(v)) selectIntensity(v);
+          });
+        });
+    
+        // show household on the pill
+        if (hhPill) hhPill.textContent = (state.householdSize ?? '—');
+    
+        // restore previously chosen intensity if any
+        if (typeof state.intensity === 'number') selectIntensity(state.intensity);
+    
+    
+        // ---------- RESET MODAL (keeps your "Are you sure?" dialog) ----------
+        const resetBtn = document.getElementById("resetBtn");
+        const resetModal = document.getElementById("resetModal");
+        const cancelResetBtn = document.getElementById("cancelResetBtn");
+        const confirmResetBtn = document.getElementById("confirmResetBtn");
+    
+        // open the modal
+        if (resetBtn) {
+          resetBtn.onclick = () => { if (resetModal) resetModal.classList.remove("hidden"); };
+        }
+        // cancel closes modal
+        if (cancelResetBtn) {
+          cancelResetBtn.onclick = () => { if (resetModal) resetModal.classList.add("hidden"); };
+        }
+        // confirm: clear state, keep your confirmation message, return to home
+        if (confirmResetBtn) {
+          confirmResetBtn.onclick = () => {
+            localStorage.removeItem(STORAGE_KEY);
+            state = structuredClone(defaultState);
+            saveState();
+            if (resetModal) resetModal.classList.add("hidden");
+            show("screen-home");
+          };
+        }
+      });
+    })();
+
+    </script>
+
+    <script>
+      const SHOW_DEV = false; // set to true when debugging
+      if (!SHOW_DEV) {
+        const f = document.querySelector('footer');
+        if (f) f.style.display = 'none';
+      }
+    </script>
+    
+    <script>
+    (function(){
+      // simple screen switcher
+      function showScreen(id){
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id)?.classList.add('active');
+      }
+    
+      // HOME → HOUSEHOLD
+      const startPlanBtn = document.getElementById('startPlanBtn');
+      if (startPlanBtn) startPlanBtn.onclick = () => showScreen('screen-household');
+    
+      // HOUSEHOLD controls
+      const hhInput  = document.getElementById('household');
+      const incBtn   = document.getElementById('incBtn');
+      const decBtn   = document.getElementById('decBtn');
+      const backHome = document.getElementById('backHomeBtn');
+      const contBtn  = document.getElementById('continueBtn');
+      const hhErr    = document.getElementById('hh-error');
+    
+      function clampHH(v){
+        const n = Math.max(1, Math.min(20, Math.floor(Number(v))));
+        return Number.isFinite(n) ? n : 1;
+      }
+    
+      function validateHH(){
+        const val = clampHH(hhInput.value);
+        const ok = (val >= 1 && val <= 20);
+        contBtn.disabled = !ok;
+        hhErr?.classList.toggle('hidden', ok);
+        return ok ? val : null;
+      }
+    
+      if (incBtn)  incBtn.onclick  = () => { hhInput.value = clampHH(hhInput.value) + 1; if (hhInput.value > 20) hhInput.value = 20; validateHH(); };
+      if (decBtn)  decBtn.onclick  = () => { hhInput.value = clampHH(hhInput.value) - 1; if (hhInput.value < 1)  hhInput.value = 1;  validateHH(); };
+      if (hhInput) ['input','change','blur'].forEach(ev => hhInput.addEventListener(ev, validateHH));
+      if (backHome) backHome.onclick = () => showScreen('screen-home');
+    
+      // HOUSEHOLD → INTENSITY (and pill update)
+      const pillHousehold = document.getElementById('pillHousehold');
+      if (contBtn) contBtn.onclick = () => {
+        const n = validateHH();
+        if (!n) return;
+        pillHousehold && (pillHousehold.textContent = n);
+        if (window.state) state.household = n;
+        if (window.saveState) saveState();
+        showScreen('screen-intensity');
+      };
+    
+      // INTENSITY Start button → first subcategory
+      // (Enable when an intensity is chosen; your existing intensity script sets .disabled = false)
+      const toFirstSubcatBtn = document.getElementById('toFirstSubcatBtn');
+      if (toFirstSubcatBtn) toFirstSubcatBtn.onclick = () => {
+        // TODO: set the initial breadcrumb/title here based on your data model.
+        // Example defaults so the screen doesn't look empty:
+        document.getElementById('breadcrumb')?.replaceChildren(document.createTextNode('Vegetables • Leafy'));
+        document.getElementById('subcatTitle')?.replaceChildren(document.createTextNode('Leafy Greens'));
+        showScreen('screen-subcat');
+      };
+    
+      // OPTIONAL: Edit household from the “next” screen, etc.
+      const editHouseholdBtn = document.getElementById('editHouseholdBtn');
+      if (editHouseholdBtn) editHouseholdBtn.onclick = () => showScreen('screen-household');
+    
+      // On initial load, make sure the current screen is visible (in case CSS/JS races)
+      document.querySelector('.screen.active') || showScreen('screen-home');
+    
+      // Kick initial validation so the Continue button state matches the default value
+      if (hhInput) validateHH();
+    })();
+        
+    // === PATCH E: wire the first subcategory start ===
+    document.addEventListener('DOMContentLoaded', () => {
+      const startFirst = document.getElementById('toFirstSubcatBtn');
+      if (!startFirst) return;
+    
+      startFirst.addEventListener('click', () => {
+        const CURRENT = { cat: 'vegetables', sub: 'leafy' };
+    
+        // update labels
+        const breadcrumb = document.getElementById('breadcrumb');
+        const title = document.getElementById('subcatTitle');
+        if (breadcrumb) breadcrumb.textContent = 'Vegetables • Leafy Greens';
+        if (title) title.textContent = 'Leafy Greens';
+    
+        // render and show
+        renderSubcategory(CURRENT.cat, CURRENT.sub);
+        showScreen('screen-subcat');
+      });
+    });
+
+    </script>
+
+
+</body>
+</html>
