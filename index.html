@@ -107,7 +107,7 @@
       display:flex; flex-direction:column; align-items:center; gap:8px; min-height:110px;
       box-shadow: 0 6px 18px rgba(22,64,96,.06);
     }
-    .cardlet.locked{opacity:.45; filter:saturate(.7)}
+    .cardlet.locked{opacity:.75; filter:saturate(.9)}
     .food-name{font-size:14px; text-align:center; min-height:2.4em;}
     .qty{width:90px; background:#f6fbff;}
     .pill{background:#ffffff; border:1px solid var(--border); border-radius:999px; padding:6px 10px; color:var(--muted); font-size:12px;}
@@ -435,6 +435,40 @@
       ]
     };
 
+    // Canonicalization + aliases so labels don’t have to be pixel-perfect
+    const NAME_ALIASES = {
+    
+      // Tubers
+      "russets": "Russet potatoes",
+      "yukon gold": "Yukon Gold potatoes",
+      "yukon gold potatoes": "Yukon Gold potatoes",
+      "cassava": "Cassava (yuca/tapioca/fufu)",
+      "fufu": "Cassava (yuca/tapioca/fufu)",
+      "yuca": "Cassava (yuca/tapioca/fufu)",
+      "tapioca": "Cassava (yuca/tapioca/fufu)",
+    
+      // Leafy (from your saved prefs)
+      "nori / dried seaweed": "Seaweed/Nori",
+      "kelp / other seaweed (fresh/rehydrated)": "Kelp",
+    
+      // Fruits (common variations)
+      "red grapes": "Red/Black grapes",
+      "black grapes": "Red/Black grapes",
+      "cherry tomatoes": "Cherry/Grape tomatoes",
+      "grape tomatoes": "Cherry/Grape tomatoes"
+    };
+    
+    // normalize: lower, collapse spaces, strip accents
+    function canonName(s){
+      return String(s || "")
+        .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        .toLowerCase()
+        .replace(/['’]/g, "")
+        .replace(/\s*\/\s*/g, "/")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
 
     // ===== VEG IMAGE MAP (name -> relative path) =====
     const VEG_IMG = {
@@ -683,27 +717,27 @@
       "Quinoa":        "assets/calories/grains/quinoa.png",
       "Rye":           "assets/calories/grains/rye.png",
       "Sorghum":       "assets/calories/grains/sorghum.png",
-      "Wheat bread":   "assets/calories/grains/wheat.png",
+      "Wheat":   "assets/calories/grains/wheatbread.png",
       "White rice":    "assets/calories/grains/whiterice.png",
       "Wild rice":     "assets/calories/grains/wildrice.png",
     
       // --- Roots / Tubers ---
       "Arrowroot":         "assets/calories/tubers/arrowroot.png",
-      "Boniatos":          "assets/calories/tubers/boniatos.png",
+      "White/Golden sweet potatoes (boniato)": "assets/calories/tubers/boniatos.png",
       "Fingerling potatoes":"assets/calories/tubers/fingerlings.png",
-      "Fufu":              "assets/calories/tubers/fufu.png",
+      "Cassava (yuca/tapioca/fufu)":              "assets/calories/tubers/fufu.png",
       "Parsnips":          "assets/calories/tubers/parsnips.png",
       "Plantains":         "assets/calories/tubers/plantains.png",
       "Purple potatoes":   "assets/calories/tubers/purplepotatoes.png",
       "Red potatoes":      "assets/calories/tubers/redpotatoes.png",
-      "Russets":           "assets/calories/tubers/russets.png",
+      "Russet potatoes":           "assets/calories/tubers/russets.png",
       "Rutabaga":          "assets/calories/tubers/rutabaga.png",
       "Sweet potatoes":    "assets/calories/tubers/sweetpotatoes.png",
       "Taro":              "assets/calories/tubers/taro.png",
       "Turnips":           "assets/calories/tubers/turnips.png",
       "Ube":               "assets/calories/tubers/ube.png",
       "Yams":              "assets/calories/tubers/yams.png",
-      "Yukon gold":        "assets/calories/tubers/yukongold.png",
+      "Yukon gold potatoes":        "assets/calories/tubers/yukongold.png",
     
       // --- Nuts & Seeds ---
       "Almonds":        "assets/calories/nutsseeds/almonds.png",
@@ -754,7 +788,7 @@
       "Green onions": "assets/flavor/flavorveg/greenonions.png",
       "Guajillo": "assets/flavor/flavorveg/guajillo.png",
       "Habanero": "assets/flavor/flavorveg/habanero.png",
-      "Jalapeño": "assets/flavor/flavorveg/jalapeno.png",
+      "Jalapeños/Chipotle peppers": "assets/flavor/flavorveg/jalapenos.png",
       "Pearl onions": "assets/flavor/flavorveg/pearlonions.png",
       "Poblano": "assets/flavor/flavorveg/poblano.png",
       "Red onions": "assets/flavor/flavorveg/redonions.png",
@@ -770,6 +804,9 @@
       "Dill": "assets/flavor/freshherbs/dill.png",
       "Epazote": "assets/flavor/freshherbs/epazote.png",
       "Flat parsley": "assets/flavor/freshherbs/flatparsley.png",
+      "Flat-leaf/Italian parsley": "assets/flavor/freshherbs/flatparsley.png",
+      "Flat-leaf parsley":         "assets/flavor/freshherbs/flatparsley.png",
+      "Italian parsley":           "assets/flavor/freshherbs/flatparsley.png",
       "Holy basil": "assets/flavor/freshherbs/holybasil.png",
       "Lemon balm": "assets/flavor/freshherbs/lemonbalm.png",
       "Lemongrass": "assets/flavor/freshherbs/lemongrass.png",
@@ -783,13 +820,13 @@
     
       // --- Dried Spices ---
       "Allspice": "assets/flavor/spices/allspice.png",
-      "Bay leaves": "assets/flavor/spices/bayleaves.png",
+      "Bay leaf": "assets/flavor/spices/bayleaves.png",
       "Cardamom": "assets/flavor/spices/cardamom.png",
       "Cinnamon": "assets/flavor/spices/cinnamon.png",
       "Cloves": "assets/flavor/spices/cloves.png",
       "Coriander": "assets/flavor/spices/coriander.png",
       "Cumin": "assets/flavor/spices/cumin.png",
-      "Fennel seed": "assets/flavor/spices/fennel.png",
+      "Fennel seeds": "assets/flavor/spices/fennel.png",
       "Ginger": "assets/flavor/spices/ginger.png",
       "Marjoram": "assets/flavor/spices/marjoram.png",
       "Nutmeg": "assets/flavor/spices/nutmeg.png",
@@ -800,9 +837,9 @@
       "Turmeric": "assets/flavor/spices/turmeric.png",
     
       // --- Flavor: Other ---
-      "Agave syrup": "assets/flavor/misc/agavesyrup.png",
+      "Agave nectar": "assets/flavor/misc/agavesyrup.png",
       "Black tea": "assets/flavor/misc/blacktea.png",
-      "Cacao": "assets/flavor/misc/cacao.png",
+      "Cacao nibs/Cocoa powder": "assets/flavor/misc/cacao.png",
       "Coffee": "assets/flavor/misc/coffee.png",
       "Dark chocolate": "assets/flavor/misc/darkchocolate.png",
       "Dried fruit": "assets/flavor/misc/driedfruit.png",
@@ -815,7 +852,7 @@
       "Molasses": "assets/flavor/misc/molasses.png",
       "Olives": "assets/flavor/misc/olives.png",
       "Vinegar": "assets/flavor/misc/vinegar.png",
-      "Yerba maté": "assets/flavor/misc/yerbamate.png"
+      "Yerba mate": "assets/flavor/misc/yerbamate.png"
     };
     
         
