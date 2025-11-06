@@ -22,12 +22,17 @@
       --border: #dfe8f2;
     }
 
+    /* Keep images fully visible (no cropping) */
     .cardlet .pic{
       width: 88px;
-      height: 88px;
-      object-fit: cover;
+      height: 88px;            /* fixed square frame for a tidy grid */
+      object-fit: contain;     /* <-- show full image, letterbox if needed */
+      background:#f7fbff;      /* soft mat behind transparent edges */
+      padding: 4px;            /* little breathing room */
       border-radius: 12px;
+      display:block;           /* avoid inline gaps */
     }
+
     
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -283,6 +288,86 @@
         <div class="row" style="justify-content:flex-end;">
           <button class="btn ghost" id="cancelResetBtn">Cancel</button>
           <button class="btn primary" id="confirmResetBtn">Reset everything</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- START food-profile-modal -->
+    <div id="foodModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="foodTitle">
+      <div class="modal-card">
+        <button class="btn ghost" id="foodCloseBtn" aria-label="Close" style="float:right">✖</button>
+        <h3 class="modal-title" id="foodTitle">—</h3>
+    
+        <section>
+          <h3>Indigenous origin</h3>
+          <p id="field-origin"></p>
+        </section>
+    
+        <section>
+          <h3>How do I eat this?</h3>
+          <div id="field-how"></div>
+          <p id="field-how-warning" class="subtle-warning" style="display:none;">
+            ⚠️ <span id="field-how-warning-text"></span>
+          </p>
+        </section>
+    
+        <section>
+          <h3>Pairs well with</h3>
+          <ul id="field-pairs"></ul>
+        </section>
+    
+        <section>
+          <h3>Vitality profile</h3>
+          <ul id="field-vitality"></ul>
+        </section>
+    
+        <section>
+          <h3>Sacred stories</h3>
+          <div id="field-stories"></div>
+        </section>
+      </div>
+    </div>
+    <!-- END food-profile-modal -->
+
+    <!-- First-run Disclaimer (blocking) -->
+    <div id="disclaimerModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle">
+      <div class="modal-card">
+        <h3 id="disclaimerTitle">Friendly disclaimer</h3>
+            <div class="dim prose-intro" style="margin-top:6px;">
+              <p>🌿 <strong>Four Directions Nourishment Guide (Beta Version)</strong> 🌿</p>
+            
+              <p>✨ This beta version gives users a glimpse into an app currently under development.</p>
+            
+              <p>🌱 <strong>Coming soon:</strong></p>
+              <ul>
+                <li>Pantry tracking to manage and organize household food items</li>
+                <li>Recipe suggestions based on pantry and weekly shopping list availability</li>
+                <li>Nutritional insights for every ingredient</li>
+                <li>Region selector for weekly Indigenous food traditions and teachings</li>
+              </ul>
+            
+              <p>🍲 <strong>Purpose of the App</strong></p>
+              <p>The Four Directions Nourishment Guide was created so that users could envision a healthy meal plan each week for their families — without needing to measure daily intake amounts.</p>
+            
+              <p>🌾 <strong>Balanced by the Four Directions</strong></p>
+              <p>The foods in this app have been calibrated across the four directions to reflect balanced quantities of calories, fats, proteins, micronutrients, and phytochemicals — all chosen for their natural, disease-fighting properties.</p>
+            
+              <p>💫 <strong>Our Goal</strong></p>
+              <p>To empower users to take control of one of the most crucial factors in well-being — what we eat.</p>
+              <p>To help users understand how Indigenous foods, and the creative fusions between different cultures, can restore balance to both body and spirit.</p>
+            
+              <p class="dim" style="margin-top:10px;">
+                This app is a brainstorming/planning helper. It’s not medical, nutrition, legal, or financial advice.
+                Double-check all guidance for your own situation.
+              </p>
+            </div>
+        <label style="display:flex; gap:10px; align-items:flex-start; margin:14px 0;">
+          <input id="disclaimerAgree" type="checkbox" />
+          <span>I have read this information and agree.</span>
+        </label>
+        <div class="row" style="justify-content:flex-end; gap:10px;">
+          <button class="btn ghost" id="disclaimerCancelBtn" title="Close the app">Close</button>
+          <button class="btn primary" id="disclaimerContinueBtn" disabled>Continue</button>
         </div>
       </div>
     </div>
@@ -936,6 +1021,87 @@
       const cat = DATA[catKey];
       const list = cat && cat[subKey];
       return Array.isArray(list) ? list : [];
+    }
+    
+    // --- Food Profile modal open/close (event delegation on #grid) ---
+    (function(){
+      const grid = document.getElementById('grid');
+      const modal = document.getElementById('foodModal');
+      const closeBtn = document.getElementById('foodCloseBtn');
+      const titleEl = document.getElementById('foodTitle');
+    
+      // Optional: wire Escape key to close
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+        }
+      });
+    
+      // Close button
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+      }
+    
+      // Click outside card closes modal
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) modal.classList.add('hidden');
+        });
+      }
+    
+      // Delegated click on any .cardlet carrying data-* attrs
+      if (grid) {
+        grid.addEventListener('click', (e) => {
+          const card = e.target.closest('.cardlet[data-food]');
+          if (!card) return;
+    
+          const name = card.dataset.food;
+          const cat  = card.dataset.cat;
+          const sub  = card.dataset.sub;
+    
+          // Call the renderer that fills the modal fields
+          openFoodModal({ name, cat, sub });
+        });
+      }
+    
+      // Minimal modal filler; replace with your full detail renderer later
+      window.openFoodModal = function({ name, cat, sub }){
+        if (!modal) return;
+        if (titleEl) titleEl.textContent = name || '—';
+    
+        // If you already have a richer renderer, call it here instead:
+        // fillFoodProfile({ name, cat, sub });
+    
+        modal.classList.remove('hidden');
+      };
+    })();
+
+    // --- Grid renderer: builds clickable cards with data attributes ---
+    function renderGrid(catKey, subKey){
+      const grid = document.getElementById('grid');
+      if (!grid) return;
+    
+      const items = getList(catKey, subKey);
+      const html = items.map(name => {
+        const imgSrc =
+          getImgFor('vegetables', subKey, name) ||
+          getImgFor('fruits', subKey, name)     ||
+          getImgFor('proteins', subKey, name)   ||
+          getImgFor('protein', subKey, name)    ||
+          getImgFor('grains', subKey, name)     ||
+          getImgFor('calories', subKey, name)   ||
+          getImgFor('flavor', subKey, name)     ||
+          getImgFor('center', subKey, name)     ||
+          ''; // fallback → no image
+    
+        return `
+          <div class="cardlet" data-food="${name}" data-cat="${catKey}" data-sub="${subKey}" tabindex="0" role="button" aria-label="Open details for ${name}">
+            ${imgSrc ? `<img class="pic" src="${imgSrc}" alt="${name}">` : `<div class="pic" aria-hidden="true"></div>`}
+            <div class="food-name">${name}</div>
+          </div>`;
+      }).join('');
+    
+      grid.innerHTML = html;
     }
  
     // --- Cross-listed split rules: route portions to multiple subcategories ---
@@ -3470,14 +3636,69 @@
     </script>
 
     <script>
-      const SHOW_DEV = false; // set to true when debugging
+      // --- Footer dev toggle (keep existing behavior) ---
+      const SHOW_DEV = false; // set true to show dev state footer
       if (!SHOW_DEV) {
         const f = document.querySelector('footer');
         if (f) f.style.display = 'none';
       }
-    </script>
     
-
-
-</body>
-</html>
+      // --- First-run disclaimer modal ---
+      (function setupDisclaimer(){
+        const MODAL_ID = 'disclaimerAccepted_v1';   // bump suffix if you change wording
+        const modal   = document.getElementById('disclaimerModal');
+        if (!modal) return; // safety
+    
+        const cb      = document.getElementById('disclaimerAgree');
+        const btnGo   = document.getElementById('disclaimerContinueBtn');
+        const btnX    = document.getElementById('disclaimerCancelBtn');
+    
+        // Dev helper: set to true to force it to show again
+        const FORCE_SHOW = false;
+        if (FORCE_SHOW) localStorage.removeItem(MODAL_ID);
+    
+        // Show if not yet accepted
+        const need = !localStorage.getItem(MODAL_ID);
+        if (need) {
+          modal.classList.remove('hidden');
+          // prevent background scroll/interaction
+          document.body.style.overflow = 'hidden';
+          // focus the checkbox for accessibility
+          setTimeout(() => cb?.focus(), 0);
+        }
+    
+        // enable Continue only when checked
+        cb?.addEventListener('change', () => {
+          btnGo.disabled = !cb.checked;
+        });
+    
+        // Continue => remember + close
+        btnGo?.addEventListener('click', () => {
+          if (!cb.checked) return;
+          localStorage.setItem(MODAL_ID, 'true');
+          modal.classList.add('hidden');
+          document.body.style.overflow = '';
+        });
+    
+        // Close => simple hard exit (you can customize)
+        btnX?.addEventListener('click', () => {
+          // Option A: navigate away
+          window.location.href = 'about:blank';
+          // Option B (comment the line above): just hide without storing acceptance
+          // modal.classList.add('hidden'); document.body.style.overflow = '';
+        });
+    
+        // Optional: simple focus trap inside the modal
+        modal.addEventListener('keydown', (e) => {
+          if (e.key !== 'Tab') return;
+          const focusables = modal.querySelectorAll('button, input, [href], [tabindex]:not([tabindex="-1"])');
+          const list = Array.from(focusables).filter(el => !el.disabled);
+          if (!list.length) return;
+          const first = list[0], last = list[list.length - 1];
+          if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+          else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+        });
+      })();
+    </script>
+    </body>
+    </html>
