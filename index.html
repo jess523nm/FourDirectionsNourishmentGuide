@@ -225,6 +225,27 @@
       display: none;                  /* hidden until we set a src */
     }
     .hidden { display: none !important; }
+
+    /* Big poster under the hero card on the home screen */
+    .poster-wrap { margin-top: 14px; }
+    
+    #mainPoster {
+      width: 100%;
+      height: calc(100dvh - 340px);  /* fills the remaining screen below header/hero */
+      max-height: 1000px;            /* safety cap for very tall screens */
+      object-fit: contain;           /* show the whole image */
+      background: #fff;              /* white mat */
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: block;
+    }
+    
+    /* Small screens: give a bit more room for browser UI */
+    @media (max-width: 640px){
+      #mainPoster { height: calc(100dvh - 380px); }
+    }
+
   </style>
 </head>
 <body>
@@ -4994,7 +5015,8 @@
                 
     };
 
-    /* ===== FOOD PROFILE MODAL WIRING ===== */
+    /* OLD food-profile modal wiring (disabled to avoid double binding)
+    <script>
     (function(){
       const MODAL = document.getElementById('foodModal');
       const TITLE = document.getElementById('foodTitle');
@@ -5119,7 +5141,8 @@
       // Expose for quick console testing:
       window.openFoodModal = openFoodModal;
     })();
-    
+*/
+
     // helpers for safe rendering
     function asArray(x){ return Array.isArray(x) ? x : (x ? [x] : []); }
     
@@ -5171,7 +5194,7 @@
           const sub  = card.dataset.sub;
     
           // Call the renderer that fills the modal fields
-          openFoodModal({ name, cat, sub });
+          openFoodModal(name);
         });
       }
     
@@ -5263,10 +5286,10 @@
         }
       }
 
-      // Open handler: populate, then show the modal
-      window.openFoodModal = function({ name, cat, sub }){
+      // Open handler: populate, then show the modal (string name only)
+      window.openFoodModal = function(name){
         if (!modal) return;
-        fillFoodProfile({ name, cat, sub });
+        fillFoodProfile({ name });
         modal.classList.remove('hidden');
       };
 
