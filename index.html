@@ -234,15 +234,15 @@
     
     #mainPoster {
       width: 100%;
-      height: calc(100dvh - 280px);  /* was -340px; gives you more vertical room */
-      max-height: 1200px;            /* was 1000px; allows a taller poster */
-      object-fit: contain;           /* show the whole image, no crop */
-      background: #fff;              /* white mat */
+      height: auto;                 /* let width control size */
+      /* max-height: none; */       /* (optional: remove any cap) */
+      background: #fff;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       display: block;
     }
+
 
     
     /* Small screens: give a bit more room for browser UI */
