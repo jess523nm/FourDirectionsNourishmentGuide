@@ -232,22 +232,17 @@
     /* Big poster under the hero card on the home screen */
     .poster-wrap { margin-top: 14px; }
     
-    #mainPoster {
-      display: block;
-      width: 100%;
-      height: auto;                 /* let width control size */
-      #mainPoster {
-      object-fit: contain;          /* change to 'cover' if you’re OK with cropping */
-      /* max-height: none; */       /* (optional: remove any cap) */
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      display: block;
+    #mainPoster{
+      display:block;
+      width:100%;
+      height:auto;            /* fill width, keep aspect ratio */
+      object-fit: contain;    /* change to 'cover' if you want it to crop & fill */
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
     }
-
-
-    
+        
     /* Small screens: give a bit more room for browser UI */
     @media (max-width: 640px){
       #mainPoster { height: calc(100dvh - 320px); }  /* a bit more space for mobile browser chrome */
