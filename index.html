@@ -94,20 +94,23 @@
     .food-hero-wrap{
       display:flex;
       justify-content:center;
-      margin: 8px 0 14px;
+      margin: 14px 0 18px;   /* slightly larger top/bottom gap */
     }
+
     #foodHero{
       max-width: 100%;
-      max-height: 160px;      /* tweak to taste */
+      max-height: 260px;          /* was 180px — bigger hero */
       width: auto;
       height: auto;
       object-fit: contain;
       border-radius: 12px;
       background: #f7fbff;
-      padding: 6px;
+      padding: 8px;               /* a touch more mat */
       border: 1px solid var(--border);
-      display: none;          /* hidden until we have an image */
+      box-shadow: 0 8px 22px rgba(22,64,96,.10);
+      display: none;              /* stays hidden until a src is set */
     }
+
    
     .cta{
       background: linear-gradient(180deg, var(--accent), #69c8f2);
@@ -231,20 +234,22 @@
     
     #mainPoster {
       width: 100%;
-      height: calc(100dvh - 340px);  /* fills the remaining screen below header/hero */
-      max-height: 1000px;            /* safety cap for very tall screens */
-      object-fit: contain;           /* show the whole image */
+      height: calc(100dvh - 280px);  /* was -340px; gives you more vertical room */
+      max-height: 1200px;            /* was 1000px; allows a taller poster */
+      object-fit: contain;           /* show the whole image, no crop */
       background: #fff;              /* white mat */
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       display: block;
     }
+
     
     /* Small screens: give a bit more room for browser UI */
     @media (max-width: 640px){
-      #mainPoster { height: calc(100dvh - 380px); }
+      #mainPoster { height: calc(100dvh - 320px); }  /* a bit more space for mobile browser chrome */
     }
+
 
   </style>
 </head>
@@ -266,11 +271,13 @@
       <!-- Full-width poster image -->
       <div class="poster-wrap">
         <img id="mainPoster"
-             src="./assets/main_image.png?v=3"
+             src="assets/main_image.png?v=4"
              loading="eager" decoding="async"
-             alt="Four Directions Nourishment Guide main poster" />
+             alt="Four Directions Nourishment Guide main poster"
+             onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 700%22&gt;&lt;rect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/&gt;&lt;rect x=%2230%22 y=%2230%22 width=%221140%22 height=%22640%22 rx=%2220%22 ry=%2220%22 fill=%22%23f7fbff%22 stroke=%22%23dfe8f2%22/&gt;&lt;text x=%22600%22 y=%22340%22 text-anchor=%22middle%22 font-size=%2232%22 fill=%22%236b7a95%22&gt;Poster image not found (assets/main_image.png)&lt;/text&gt;&lt;/svg&gt;';">
       </div>
 
+        <link rel="preload" as="image" href="assets/main_image.png?v=3">
     </section>
 
     <!-- Household size -->
@@ -1398,7 +1405,7 @@
     };
 
     // === PATCH 1A: FOOD_INFO (minimal starter data; expand freely) ===
-   const FOOD_INFO = {
+   window.FOOD_INFO = {
        //Vegetables
         //Leafy
           "Spinach": {
@@ -5165,144 +5172,140 @@
       try { return WALK?.[route?.catIndex]?.subs?.[route?.subIndex]; }
       catch { return null; }
     }
-    
-    // --- Food Profile modal open/close (event delegation on #grid) ---
-    (function(){
-      const grid = document.getElementById('grid');
-      const modal = document.getElementById('foodModal');
-      const closeBtn = document.getElementById('foodCloseBtn');
-      const titleEl = document.getElementById('foodTitle');
-    
-      // Optional: wire Escape key to close
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
-          modal.classList.add('hidden');
-        }
+
+// --- Food Profile modal open/close (single, clean wiring) ---
+(function(){
+  const MODAL   = document.getElementById('foodModal');
+  const TITLE   = document.getElementById('foodTitle');
+  const ORIGIN  = document.getElementById('field-origin');
+  const HOW     = document.getElementById('field-how');
+  const HOW_WARN_WRAP = document.getElementById('field-how-warning');
+  const HOW_WARN_TEXT = document.getElementById('field-how-warning-text');
+  const PAIRS   = document.getElementById('field-pairs');
+  const VITAL   = document.getElementById('field-vitality');
+  const STORIES = document.getElementById('field-stories');
+  const CLOSE   = document.getElementById('foodCloseBtn');
+  const GRID    = document.getElementById('grid');
+
+  // tolerant lookup: exact → case-insensitive → alias
+  function lookupFoodRecord(label){
+    const low = String(label || '').toLowerCase().trim();
+    const map = (typeof FOOD_INFO !== 'undefined' ? FOOD_INFO : (window.FOOD_INFO || {}));
+
+    if (Object.prototype.hasOwnProperty.call(map, label)) return { key: label, rec: map[label] };
+
+    const exactKey = Object.keys(map).find(k => k.toLowerCase().trim() === low);
+    if (exactKey) return { key: exactKey, rec: map[exactKey] };
+
+    if (window.NAME_ALIASES){
+      const hit = Object.entries(window.NAME_ALIASES).find(([alias]) =>
+        String(alias).toLowerCase().trim() === low
+      );
+      if (hit){
+        const target = hit[1];
+        if (Object.prototype.hasOwnProperty.call(map, target)) return { key: target, rec: map[target] };
+      }
+    }
+    return { key: null, rec: null };
+  }
+
+  function clearChildren(node){ while(node && node.firstChild) node.removeChild(node.firstChild); }
+
+  function fillFoodProfile(name){
+    // Title + hero
+    const { key: resolvedKey, rec } = lookupFoodRecord(name);
+    if (TITLE) TITLE.textContent = (resolvedKey || name || '—');
+    if (window.setFoodHero) window.setFoodHero(resolvedKey || name);
+
+    // If missing record, graceful fallback
+    if (!rec){
+      if (ORIGIN) ORIGIN.textContent = 'Coming soon.';
+      if (HOW) HOW.innerHTML = '<p class="dim">Tips coming soon.</p>';
+      if (HOW_WARN_WRAP) HOW_WARN_WRAP.style.display = 'none';
+      if (PAIRS) clearChildren(PAIRS);
+      if (VITAL) clearChildren(VITAL);
+      if (STORIES) STORIES.textContent = '';
+      return;
+    }
+
+    // Origin
+    if (ORIGIN) ORIGIN.textContent = rec.origin || '—';
+
+    // How (list or paragraphs)
+    if (HOW){
+      clearChildren(HOW);
+      const steps = Array.isArray(rec.how) ? rec.how : (rec.how ? [rec.how] : []);
+      if (steps.length){
+        const ul = document.createElement('ul');
+        steps.forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
+        HOW.appendChild(ul);
+      } else {
+        HOW.innerHTML = '<p class="dim">Tips coming soon.</p>';
+      }
+    }
+
+    // Warning
+    const warn = (rec.how_warning || '').trim();
+    if (HOW_WARN_WRAP){
+      if (warn){
+        HOW_WARN_WRAP.style.display = '';
+        if (HOW_WARN_TEXT) HOW_WARN_TEXT.textContent = warn;
+      } else {
+        HOW_WARN_WRAP.style.display = 'none';
+      }
+    }
+
+    // Pairs
+    if (PAIRS){
+      clearChildren(PAIRS);
+      (Array.isArray(rec.pairs) ? rec.pairs : []).forEach(p => {
+        const li = document.createElement('li'); li.textContent = p; PAIRS.appendChild(li);
       });
-    
-      // Close button
-      if (closeBtn) {
-        closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-      }
-    
-      // Click outside card closes modal
-      if (modal) {
-        modal.addEventListener('click', (e) => {
-          if (e.target === modal) modal.classList.add('hidden');
-        });
-      }
-    
-      // Delegated click on any .cardlet carrying data-* attrs
-      if (grid) {
-        grid.addEventListener('click', (e) => {
-          const card = e.target.closest('.cardlet[data-food]');
-          if (!card) return;
-    
-          const name = card.dataset.food;
-          const cat  = card.dataset.cat;
-          const sub  = card.dataset.sub;
-    
-          // Call the renderer that fills the modal fields
-          openFoodModal(name);
-        });
-      }
-    
-      // Full renderer: fills all modal fields from FOOD_INFO
-      function fillFoodProfile({ name, cat, sub }){
-        const rec = FOOD_INFO?.[name] || null;
+    }
 
-        // DOM targets
-        const originEl  = document.getElementById('field-origin');
-        const howWrap   = document.getElementById('field-how');
-        const howWarnP  = document.getElementById('field-how-warning');
-        const howWarnTx = document.getElementById('field-how-warning-text');
-        const pairsEl   = document.getElementById('field-pairs');
-        const vitaEl    = document.getElementById('field-vitality');
-        const storyEl   = document.getElementById('field-stories');
+    // Vitality
+    if (VITAL){
+      clearChildren(VITAL);
+      (Array.isArray(rec.vitality) ? rec.vitality : []).forEach(v => {
+        const li = document.createElement('li'); li.textContent = v; VITAL.appendChild(li);
+      });
+    }
 
-        // Clear previous content
-        if (originEl) originEl.textContent = '';
-        if (howWrap)  howWrap.innerHTML = '';
-        if (pairsEl)  pairsEl.innerHTML = '';
-        if (vitaEl)   vitaEl.innerHTML = '';
-        if (storyEl)  storyEl.textContent = '';
+    // Stories
+    if (STORIES) STORIES.textContent = rec.stories || '';
+  }
 
-        // Title
-        if (titleEl) titleEl.textContent = name || '—';
+  // Public open function
+  window.openFoodModal = function(name){
+    if (!MODAL) return;
+    fillFoodProfile(name);
+    MODAL.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
 
-        if (!rec){
-          // Graceful fallback if entry absent
-          if (originEl) originEl.textContent = 'Coming soon.';
-          if (howWrap)  howWrap.innerHTML = '<p class="dim">Tips coming soon.</p>';
-          if (howWarnP) howWarnP.style.display = 'none';
-          if (pairsEl)  pairsEl.innerHTML = '';
-          if (vitaEl)   vitaEl.innerHTML = '';
-          if (storyEl)  storyEl.textContent = '';
-          return;
-        }
+  // Close handlers
+  function closeFoodModal(){
+    if (!MODAL) return;
+    MODAL.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+  CLOSE?.addEventListener('click', closeFoodModal);
+  MODAL?.addEventListener('click', (e)=>{ if (e.target === MODAL) closeFoodModal(); });
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && !MODAL.classList.contains('hidden')) closeFoodModal(); });
 
-        // Origin
-        if (originEl) originEl.textContent = rec.origin || '—';
+  // Click wiring: support both .info-btn[data-key] and .cardlet[data-food]
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.info-btn[data-key]');
+    if (btn) { window.openFoodModal(btn.dataset.key); return; }
 
-        // How to eat (bullet list or paragraphs)
-        if (howWrap){
-          const steps = asArray(rec.how);
-          if (steps.length){
-            const ul = document.createElement('ul');
-            steps.forEach(s => {
-              const li = document.createElement('li');
-              li.textContent = s;
-              ul.appendChild(li);
-            });
-            howWrap.appendChild(ul);
-          }else{
-            howWrap.innerHTML = '<p class="dim">Tips coming soon.</p>';
-          }
-        }
+    if (!GRID) return;
+    const card = e.target.closest('.cardlet[data-food]');
+    if (card && GRID.contains(card)){
+      window.openFoodModal(card.dataset.food);
+    }
+  });
+})();
 
-        // Optional warning
-        const warn = (rec.how_warning || '').trim();
-        if (howWarnP){
-          if (warn){
-            howWarnP.style.display = '';
-            if (howWarnTx) howWarnTx.textContent = warn;
-          }else{
-            howWarnP.style.display = 'none';
-          }
-        }
-
-        // Pairs well with
-        if (pairsEl){
-          asArray(rec.pairs).forEach(p => {
-            const li = document.createElement('li');
-            li.textContent = p;
-            pairsEl.appendChild(li);
-          });
-        }
-
-        // Vitality profile
-        if (vitaEl){
-          asArray(rec.vitality).forEach(v => {
-            const li = document.createElement('li');
-            li.textContent = v;
-            vitaEl.appendChild(li);
-          });
-        }
-
-        // Sacred stories
-        if (storyEl){
-          storyEl.textContent = rec.stories || '';
-        }
-      }
-
-      // Open handler: populate, then show the modal (string name only)
-      window.openFoodModal = function(name){
-        if (!modal) return;
-        fillFoodProfile({ name });
-        modal.classList.remove('hidden');
-      };
-
-    })();
 
     // --- Grid renderer: builds clickable cards with data attributes ---
     function renderGrid(catKey, subKey){
@@ -8445,6 +8448,122 @@
         wrap.style.display = 'none';
       }
     }
+
+    // ---- Food profile: tolerant lookup + field filler -------------------------
+    (function(){
+      // Optional alias map; extend as needed
+      window.NAME_ALIASES = Object.assign({
+        'soba': 'Buckwheat / Soba',
+        'buckwheat soba': 'Buckwheat / Soba',
+        'wild rice': 'Wild Rice / Manoomin',
+        'tofu': 'Soft/Firm Tofu',
+        'plant pork': 'Pig Meat / Plant Pork',
+        'plant beef': 'Cow Meat / Plant Beef',
+        'plant poultry': 'Chicken / Turkey / Plant Poultry'
+      }, window.NAME_ALIASES || {});
+    
+      function lookupFoodRecord(label){
+        const map = (window.FOOD_INFO || {});
+        const raw = String(label || '');
+        const low = raw.toLowerCase().trim();
+    
+        // exact
+        if (Object.prototype.hasOwnProperty.call(map, raw)) return { key: raw, rec: map[raw] };
+    
+        // case-insensitive
+        const keyCI = Object.keys(map).find(k => k.toLowerCase().trim() === low);
+        if (keyCI) return { key: keyCI, rec: map[keyCI] };
+    
+        // alias
+        const hit = Object.entries(window.NAME_ALIASES).find(([alias]) =>
+          String(alias).toLowerCase().trim() === low
+        );
+        if (hit && Object.prototype.hasOwnProperty.call(map, hit[1])) {
+          return { key: hit[1], rec: map[hit[1]] };
+        }
+        return { key: null, rec: null };
+      }
+    
+      // Render all fields into the modal from FOOD_INFO
+      window.fillFoodProfile = function fillFoodProfile(name){
+        const titleEl = document.getElementById('foodTitle');
+        const originEl  = document.getElementById('field-origin');
+        const howWrap   = document.getElementById('field-how');
+        const howWarnP  = document.getElementById('field-how-warning');
+        const howWarnTx = document.getElementById('field-how-warning-text');
+        const pairsEl   = document.getElementById('field-pairs');
+        const vitaEl    = document.getElementById('field-vitality');
+        const storyEl   = document.getElementById('field-stories');
+    
+        // clear previous content
+        if (originEl) originEl.textContent = '';
+        if (howWrap)  howWrap.innerHTML = '';
+        if (pairsEl)  pairsEl.innerHTML = '';
+        if (vitaEl)   vitaEl.innerHTML = '';
+        if (storyEl)  storyEl.textContent = '';
+        if (howWarnP) howWarnP.style.display = 'none';
+        if (howWarnTx) howWarnTx.textContent = '';
+    
+        const { key: resolved, rec } = lookupFoodRecord(name);
+    
+        if (titleEl) titleEl.textContent = resolved || name || '—';
+        try { if (window.setFoodHero) setFoodHero(resolved || name); } catch {}
+    
+        if (!rec){
+          if (originEl) originEl.textContent = 'Coming soon.';
+          if (howWrap)  howWrap.innerHTML = '<p class="dim">Tips coming soon.</p>';
+          return;
+        }
+    
+        // Origin
+        if (originEl) originEl.textContent = rec.origin || '—';
+    
+        // How (array → bullets)
+        if (howWrap){
+          const steps = Array.isArray(rec.how) ? rec.how : (rec.how ? [rec.how] : []);
+          if (steps.length){
+            const ul = document.createElement('ul');
+            steps.forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
+            howWrap.appendChild(ul);
+          } else {
+            howWrap.innerHTML = '<p class="dim">Tips coming soon.</p>';
+          }
+        }
+    
+        // Warning
+        const warn = (rec.how_warning || '').trim();
+        if (howWarnP){
+          if (warn){
+            howWarnP.style.display = '';
+            if (howWarnTx) howWarnTx.textContent = warn;
+          }else{
+            howWarnP.style.display = 'none';
+          }
+        }
+    
+        // Pairs well with
+        if (pairsEl){
+          (Array.isArray(rec.pairs) ? rec.pairs : []).forEach(p => {
+            const li = document.createElement('li');
+            li.textContent = p;
+            pairsEl.appendChild(li);
+          });
+        }
+    
+        // Vitality
+        if (vitaEl){
+          (Array.isArray(rec.vitality) ? rec.vitality : []).forEach(v => {
+            const li = document.createElement('li');
+            li.textContent = v;
+            vitaEl.appendChild(li);
+          });
+        }
+    
+        // Sacred story
+        if (storyEl) storyEl.textContent = rec.stories || '';
+      };
+    })();
+
     </script>
     
     <script>
@@ -8456,12 +8575,15 @@
       const btnClose = document.getElementById('foodCloseBtn');
       const titleEl  = document.getElementById('foodTitle');
     
-      function openFoodModal(name){
-        if (titleEl) titleEl.textContent = name || '—';
-        try { setFoodHero(name); } catch {}
+    function openFoodModal(name){
+      try { window.fillFoodProfile(name); } catch {}
+      const modal = document.getElementById('foodModal');
+      if (modal){
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
       }
+    }
+
     
       function closeFoodModal(){
         modal.classList.add('hidden');
