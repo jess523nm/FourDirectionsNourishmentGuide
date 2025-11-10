@@ -233,8 +233,11 @@
     .poster-wrap { margin-top: 14px; }
     
     #mainPoster {
+      display: block;
       width: 100%;
       height: auto;                 /* let width control size */
+      #mainPoster {
+      object-fit: contain;          /* change to 'cover' if you’re OK with cropping */
       /* max-height: none; */       /* (optional: remove any cap) */
       background: #fff;
       border: 1px solid var(--border);
