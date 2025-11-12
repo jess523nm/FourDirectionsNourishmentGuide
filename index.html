@@ -248,8 +248,39 @@
       #mainPoster { height: calc(100dvh - 320px); }  /* a bit more space for mobile browser chrome */
     }
 
+    /* ——— Grocery loop headers + tiny thumbnails ——— */
+    .section-head{margin:18px 0 8px;font-weight:700;font-size:1rem;display:flex;gap:8px;align-items:center}
+    .section-head .tag{font-size:.9rem;opacity:.7}
+    .item-line{display:flex;align-items:center;gap:10px;margin:6px 0}
+    .item-line img.thumb{width:28px;height:28px;object-fit:contain;border-radius:6px;border:1px solid #e6eaf1}
+    .item-note{opacity:.7;font-size:.9rem}
 
   </style>
+
+    <!-- === SHOPPING GRID CSS (insert right before </head>) === -->
+    <style>
+      .shopping-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      @media (max-width:900px){.shopping-grid{grid-template-columns:1fr}}
+      .shop-card{background:var(--card,#fff);border:1px solid var(--border,#e7ecf4);border-radius:14px;box-shadow:0 6px 18px rgba(20,40,80,.06);padding:12px}
+      .shop-card h4{margin:0 0 6px;font-size:15px;line-height:1.15}
+      .shop-card ol{margin:6px 0 0 1.25rem;padding:0}
+      .shop-card li{margin:.25rem 0}
+      .muted{color:var(--muted,#6b7a95);font-size:12px}
+      .hidden-table{position:absolute;left:-9999px;top:-9999px;height:1px;width:1px;overflow:hidden}
+    </style>
+
+    <!-- === Organized view (two-column) === -->
+    <style>
+      #organized-output .org-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      @media (max-width:900px){#organized-output .org-grid{grid-template-columns:1fr}}
+      #organized-output .org-card{background:var(--card,#fff);border:1px solid var(--border,#e7ecf4);border-radius:14px;box-shadow:0 6px 18px rgba(20,40,80,.06);padding:12px}
+      #organized-output h3{margin:.25rem 0 0.35rem;font-size:15px;line-height:1.15}
+      #organized-output .blurb{color:var(--muted,#6b7a95);font-size:12px;line-height:1.35;margin:.15rem 0 .35rem}
+      #organized-output ol{margin:.25rem 0 0 1.25rem;padding:0}
+      #organized-output li{margin:.25rem 0}
+      #organized-output .head{font-weight:700;margin:.25rem 0 .5rem}
+    </style>
+
 </head>
 <body>
   <header>
@@ -272,7 +303,7 @@
              src="assets/main_image.png?v=4"
              loading="eager" decoding="async"
              alt="Four Directions Nourishment Guide main poster"
-             onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 700%22&gt;&lt;rect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/&gt;&lt;rect x=%2230%22 y=%2230%22 width=%221140%22 height=%22640%22 rx=%2220%22 ry=%2220%22 fill=%22%23f7fbff%22 stroke=%22%23dfe8f2%22/&gt;&lt;text x=%22600%22 y=%22340%22 text-anchor=%22middle%22 font-size=%2232%22 fill=%22%236b7a95%22&gt;Poster image not found (assets/main_image.png)&lt;/text&gt;&lt;/svg&gt;';">
+             onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 700%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/><rect x=%2230%22 y=%2230%22 width=%221140%22 height=%22640%22 rx=%2220%22 ry=%2220%22 fill=%22%23f7fbff%22 stroke=%22%23dfe8f2%22/><text x=%22600%22 y=%22340%22 text-anchor=%22middle%22 font-size=%2232%22 fill=%22%236b7a95%22>Poster image not found (assets/main_image.png)</text></svg>';">
       </div>
 
         <link rel="preload" as="image" href="assets/main_image.png?v=3">
@@ -390,6 +421,12 @@
     
         <div id="shoppingSummary" class="pill" style="margin:10px 0;"></div>
         <div id="shoppingTableWrap" style="overflow:auto; max-height:60vh;"></div>
+
+        <!-- Organize-by-store button + grouped output -->
+        <div class="pad">
+          <button id="btn-organize" class="btn">Organize my list based on typical grocery store layout</button>
+          <div id="organized-output" class="pad"></div>
+        </div>
     
         <div class="toolbar">
           <div class="row">
@@ -456,6 +493,29 @@
       </div>
     </div>
     <!-- END food-profile-modal -->
+
+
+    <!-- Protein Diet Choice (blocking-once-per-session for Proteins) -->
+    <div id="proteinDietModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="proteinDietTitle">
+      <div class="modal-card">
+        <button class="modal-x" id="proteinDietX" aria-label="Close">×</button>
+        <h3 id="proteinDietTitle">Protein planning: do you include seafood?</h3>
+
+        <div class="dim" style="margin-top:6px;">
+          <p>Seafood counts toward protein and omega-3s. If you don’t eat seafood, we’ll move those servings to <strong>Complete Proteins</strong> so your totals still balance.</p>
+          <details open style="margin-top:8px;">
+            <summary><strong>Vegan / no-seafood note</strong></summary>
+            <p style="margin-top:6px;">If you skip seafood — and especially if you’re vegan — you may need DHA/EPA (algae-based omega-3) and Vitamin B12 from fortified foods or supplements. Talk to your clinician for personal guidance.</p>
+          </details>
+          <p class="dim" style="margin-top:8px;">This reminder appears every week.</p>
+        </div>
+
+        <div class="row" style="justify-content:flex-end; gap:10px; margin-top:14px;">
+          <button class="btn" id="proteinDietNo">No, exclude seafood</button>
+          <button class="btn primary" id="proteinDietYes">Yes, include seafood</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Protein Scorecard (non-blocking) -->
     <div id="proteinScorecardModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="proteinScorecardTitle">
@@ -752,7 +812,7 @@
         if (typeof _show === 'function') {
           window.show = function(id){
             document.body.style.overflow = '';             // <-- hard unlock
-            document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.modal[data-route-managed="1"]').forEach(m => m.classList.add('hidden'));
             return _show.apply(this, arguments);
           };
         }
@@ -7085,18 +7145,22 @@
     }
 
     
-    // Seafood reallocation: move seafood per-person share to legumes+complete (half/half)
+    // Seafood reallocation: session-scoped choice, move seafood → complete on "No"
     function proteinSplitsEffective(){
       // Base: legumes 14, complete 15, dairy 10, seafood 5  => total 45
       const base = { legumes_pulses: 14, complete: 15, dairy: 10, seafood: 5 };
-    
-      // If seafood is OFF, move all 5 servings to COMPLETE (not split with legumes)
-      if (state.protein && state.protein.willingSeafood === false) {
-        base.complete += base.seafood; // +5
+
+      // Session choice: 'yes' | 'no' | null
+      const choice = (sessionStorage.getItem('proteinDietChoice') || '').toLowerCase();
+      const noSeafood = (choice === 'no');
+
+      if (noSeafood) {
+        base.complete += base.seafood; // move +5 to complete
         base.seafood = 0;
       }
       return base;
     }
+
 
     // Sum servings logged in a subcategory
     function currentServings(subKey){
@@ -7431,7 +7495,7 @@
                   data-cat="${cat}"
                   data-sub="${sub}"
                   data-food="${name}"
-                  data-label="${label.replace(/"/g, '&quot;')}">
+                  data-label="${label.replace(/"/g, '"')}">
                   <strong>${g.count}</strong>${labelPart}
                   <span class="x" title="Remove one">×</span>
                 </span>`;
@@ -7636,41 +7700,31 @@
       return WALK.every(({cat, subs}) => subs.every(sk => isSubComplete(cat, sk)));
     }
     
-    // ---- Render shopping list screen ----
     function renderShoppingList(){
-      // ensure aggregate is up to date
+      // keep aggregate up to date
       recomputeShopping();
     
       const totalItems = Object.keys(state.shopping).length;
       const totalServs = Object.values(state.shopping).reduce((a,b)=>a+b,0);
-      document.getElementById("shoppingSummary").textContent =
-        `${totalItems} items • ${Math.ceil(totalServs)} total servings`;
+      const summaryEl = document.getElementById("shoppingSummary");
+      if (summaryEl) summaryEl.textContent = `${totalItems} items • ${Math.ceil(totalServs)} total servings`;
     
-      // build a table with optional choice trails
-      const wrap = document.getElementById("shoppingTableWrap");
-      const rows = [];
-    
-      // group by subKey for nicer display
+      // -------- group by subKey with logs we already captured --------
       const bySub = {};
-      for(const [subKey, items] of Object.entries(state.shoppingDetails || {})){
-        for(const [name, logs] of Object.entries(items || {})){
+      for (const [subKey, items] of Object.entries(state.shoppingDetails || {})){
+        for (const [name, logs] of Object.entries(items || {})){
           const total = (state.progress?.[subKey]?.[name]) || 0;
-          (bySub[subKey] ??= []).push({
-            name, total,
-            notes: logs.join(" • ")
-          });
+          (bySub[subKey] ??= []).push({ name, total, logs: Array.isArray(logs) ? logs.slice() : [] });
         }
       }
-    
-      // fallback: if shoppingDetails missing for some items, still show them
-      for(const [name, total] of Object.entries(state.shopping)){
+      // fallback for any totals that don't have detail logs
+      for (const [name, total] of Object.entries(state.shopping)){
         let found = false;
-        for(const group of Object.values(bySub)){ if(group.some(r=>r.name===name)){ found = true; break; } }
-        if(!found){
-          (bySub["_Other"] ??= []).push({ name, total, notes:"" });
-        }
+        for (const group of Object.values(bySub)){ if (group.some(r => r.name === name)) { found = true; break; } }
+        if (!found){ (bySub["_Other"] ??= []).push({ name, total, logs: [] }); }
       }
     
+      // order we already use elsewhere
       const subOrder = [
         "leafy","cruciferous","orange","other",
         "berries","citrus","carotenoid_lycopene","other",
@@ -7680,35 +7734,78 @@
         "_Other"
       ];
     
-      let html = `<table style="width:100%; border-collapse:collapse;">
-        <thead>
-          <tr>
-            <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border);">Item</th>
-            <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">Servings</th>
-            <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border);">Choices Added</th>
-          </tr>
-        </thead>
-        <tbody>`;
+      // helper: collapse identical package labels → counts
+      function aggregateLabels(logs){
+        const counts = new Map();
+        (logs || []).forEach(s => {
+          // our logs look like: "Bag pre-chopped 10 oz (+7 servs)"
+          const label = String(s).split("(+")[0].trim();
+          if (!label) return;
+          counts.set(label, (counts.get(label) || 0) + 1);
+        });
+        return [...counts.entries()]  // [label, count][]
+          .sort((a,b) => a[0].localeCompare(b[0]));
+      }
     
+      // ---------- Build the 2-column visual list ----------
+      const wrap = document.getElementById("shoppingTableWrap");
+      if (!wrap) return;
+    
+      let gridHtml = `<div class="shopping-grid">`;
       subOrder.forEach(sk => {
-        if(!bySub[sk] || !bySub[sk].length) return;
-        const label = LABELS[sk] || (sk === "_Other" ? "Other" : sk);
-        html += `<tr><td colspan="3" style="padding:10px 8px; font-weight:700; background:#f9fbff; border-top:1px solid var(--border);">${label}</td></tr>`;
-        bySub[sk]
-          .sort((a,b)=> a.name.localeCompare(b.name))
-          .forEach(({name,total,notes})=>{
-            html += `<tr>
-              <td style="padding:8px; border-bottom:1px solid var(--border);">${name}</td>
-              <td style="padding:8px; text-align:right; border-bottom:1px solid var(--border);">${Number(total.toFixed(2))}</td>
-              <td style="padding:8px; border-bottom:1px solid var(--border); color:var(--muted);">${notes || ""}</td>
-            </tr>`;
+        const group = bySub[sk];
+        if (!group || !group.length) return;
+        const sectionLabel = LABELS[sk] || (sk === "_Other" ? "Other" : sk);
+    
+        gridHtml += `<div class="shop-card">
+          <h4>${sectionLabel}</h4>
+          <ol>`;
+    
+        // number the items; each line shows the actual thing you're buying
+        group
+          .sort((a,b) => a.name.localeCompare(b.name))
+          .forEach(({name, logs}) => {
+            const packs = aggregateLabels(logs); // [[label,count],...]
+            const right = packs.length
+              ? packs.map(([label, n]) => `${n} × ${label}`).join("; ")
+              : ""; // no label trail
+            gridHtml += `<li><strong>${name}</strong>${right ? ` — ${right}` : ""}</li>`;
           });
+    
+        gridHtml += `</ol>
+          <div class="muted" style="margin-top:6px;">(${group.length} item${group.length!==1?'s':''})</div>
+        </div>`;
       });
+      gridHtml += `</div>`;
     
-      html += `</tbody></table>`;
-      wrap.innerHTML = html;
+      // inject the visual grid
+      wrap.innerHTML = gridHtml;
     
-      // wire actions
+      // ---------- Keep a tiny hidden table for organize/copy/download ----------
+      // This preserves your existing "Organize my list" button and CSV/copy behavior.
+      const hidden = document.createElement("div");
+      hidden.className = "hidden-table";
+      const rows = [];
+      for (const [subKey, items] of Object.entries(state.shoppingDetails || {})){
+        for (const [name, logs] of Object.entries(items || {})){
+          const total = (state.progress?.[subKey]?.[name]) || 0;
+          rows.push(`<tr data-name="${name.replace(/"/g,'&quot;')}" data-note="${(logs.join(' • ')||'').replace(/"/g,'&quot;')}">
+            <td>${name}</td><td>${total}</td><td>${(logs||[]).join(' • ')}</td>
+          </tr>`);
+        }
+      }
+      // add any missing items
+      for (const [name, total] of Object.entries(state.shopping)){
+        if (!rows.some(r => r.includes(`data-name="${name.replace(/"/g,'&quot;')}"`))){
+          rows.push(`<tr data-name="${name.replace(/"/g,'&quot;')}" data-note="">
+            <td>${name}</td><td>${total}</td><td></td>
+          </tr>`);
+        }
+      }
+      hidden.innerHTML = `<table><tbody>${rows.join("")}</tbody></table>`;
+      wrap.appendChild(hidden);
+    
+      // wire actions (unchanged)
       document.getElementById("copyListBtn").onclick = () => copyShoppingToClipboard();
       document.getElementById("downloadCsvBtn").onclick = () => downloadShoppingCsv();
       document.getElementById("printBtn").onclick = () => window.print();
@@ -7716,6 +7813,7 @@
     
       show("screen-shopping");
     }
+
     
     // ---- Utilities: copy & CSV ----
     function copyShoppingToClipboard(){
@@ -7894,11 +7992,30 @@
     // 2) Safe open
     window.openCurrentSubcategory = function openCurrentSubcategory(){
       const node = WALK[route.catIndex];
-        // Safety reset so page scroll never gets stuck
-          document.body.style.overflow = '';
-          document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-      const catKey = node.cat;
-      const subKey = node.subs[route.subIndex];
+        // If a global-blocking modal is open (e.g., disclaimer), don't override it.
+        const d = document.getElementById('disclaimerModal');
+        if (d && !d.classList.contains('hidden')) {
+          console.warn('[router] disclaimer visible; deferring route paint');
+          return; // leave the disclaimer alone
+        }
+        
+        // Close only route-managed modals (education tips), not the disclaimer.
+        document.body.style.overflow = '';
+        document.querySelectorAll('.modal[data-route-managed="1"]').forEach(m => m.classList.add('hidden'));
+
+      // Derive current cat/sub — but allow skip logic to advance past excluded subcats
+      let catKey = node.cat;
+      let subKey = node.subs[route.subIndex];
+
+      if (typeof window.shouldSkipSubcat === 'function'){
+        let guard = 0;
+        while (window.shouldSkipSubcat(catKey, subKey) && guard++ < 10){
+          if (!advanceRoute()) break;
+          const n2 = WALK[route.catIndex];
+          catKey = n2.cat;
+          subKey = n2.subs[route.subIndex];
+        }
+      }
       console.log("[open]", { route, catKey, subKey });
     
     const catLabel = LABELS[catKey] || catKey;
@@ -7918,7 +8035,7 @@
           ? "Pick your weekly flavor/health enhancers. These are weekly ‘picks’, not strict servings."
           : "Allocate servings for this subcategory. Rounds up; when the quota is reached, cards grey out.";
       }
-    
+      if (typeof renderProteinSettingsChip === 'function') renderProteinSettingsChip(catKey);
       // render cards for this subcategory
         if (typeof renderSubcategory === "function") {
           renderSubcategory(catKey, subKey);
@@ -7932,6 +8049,10 @@
         if (typeof maybeShowDairyOverview === 'function') {
           maybeShowDairyOverview(catKey, subKey);
         }
+        if (typeof maybeShowProteinDietPrompt === 'function') {
+          maybeShowProteinDietPrompt(catKey, subKey);
+        }
+
         if (typeof maybeShowProteinScorecard === 'function') {
           maybeShowProteinScorecard(catKey, subKey);
         }
@@ -8004,7 +8125,7 @@
       console.log("[router-ready]");
     })();
 
-// ==== Intensity screen wiring (¼, ½, 1×) ====
+/* ==== Intensity screen wiring (¼, ½, 1×) ====
     (function () {
       const btns = document.querySelectorAll('#screen-intensity [data-intensity]');
       const startBtn = document.getElementById('toFirstSubcatBtn');
@@ -8023,14 +8144,21 @@
           b.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
     
-        // enable and wire “Start with Vegetables (1.1 Leafy)”
-        if (startBtn) {
-          startBtn.disabled = false;
-          startBtn.onclick = () => {
-            show('screen-subcat');
-            renderSubcategory('vegetables','leafy');
-          };
-        }
+          // Start flow via router so hints, Next state, and popups work
+          if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.onclick = () => {
+              route = { catIndex: 0, subIndex: 0 };
+              if (typeof openCurrentSubcategory === 'function') {
+                openCurrentSubcategory();
+              } else {
+                // fallback (shouldn’t hit): direct render
+                show('screen-subcat');
+                renderSubcategory('vegetables','leafy');
+              }
+            };
+          }
+
       }
     
       // wire clicks (handles 0.25, 0.5, 1 exactly)
@@ -8048,6 +8176,7 @@
       // restore previously chosen intensity, if any
       if (typeof state.intensity === 'number') selectIntensity(state.intensity);
     })();
+*/
 
     // ===== SAFE DROP-IN: Intensity + Reset wiring (runs after DOM is ready) =====
     (function () {
@@ -8117,6 +8246,7 @@
         if (confirmResetBtn) {
           confirmResetBtn.onclick = () => {
             localStorage.removeItem(STORAGE_KEY);
+            sessionStorage.removeItem('proteinDietChoice');
             state = structuredClone(defaultState);
             saveState();
             if (resetModal) resetModal.classList.add("hidden");
@@ -8174,19 +8304,15 @@
           document.body.style.overflow = '';
         });
     
-        // Close => simple hard exit (you can customize)
         btnX?.addEventListener('click', () => {
-          // Option A: navigate away
-          window.location.href = 'about:blank';
-          // Option B (comment the line above): just hide without storing acceptance
-          // modal.classList.add('hidden'); document.body.style.overflow = '';
+          modal.classList.add('hidden');
+          document.body.style.overflow = '';
         });
         
         // Top-right X does the same as Close
         btnX2?.addEventListener('click', () => {
-          window.location.href = 'about:blank';
-          // Or swap to this if you prefer it to just hide:
-          // modal.classList.add('hidden'); document.body.style.overflow = '';
+          modal.classList.add('hidden');
+          document.body.style.overflow = '';
         });
 
         // Optional: simple focus trap inside the modal
@@ -8241,6 +8367,101 @@
         if (localStorage.getItem(MODAL_ID)) return;
         openModal();
       };
+    })();
+    </script>
+
+    <script>
+    /* ===== Protein Diet Choice (session-only) ===== */
+    (function setupProteinDietChoice(){
+      const MODAL = document.getElementById('proteinDietModal');
+      if (!MODAL) return;
+
+      const BTN_YES = document.getElementById('proteinDietYes');
+      const BTN_NO  = document.getElementById('proteinDietNo');
+      const BTN_X   = document.getElementById('proteinDietX');
+
+      // Dev helper: show this modal every reload while testing
+      // (sessionStorage persists for the life of the tab; clear it here)
+      const DEV_FORCE_SHOW = true;            // ← set to false when done testing
+      if (DEV_FORCE_SHOW) sessionStorage.removeItem('proteinDietChoice');
+
+      function openModal(){
+        MODAL.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(()=>BTN_YES?.focus(), 0);
+      }
+      function closeModal(){
+        MODAL.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      function setSeafoodChoice(v){
+        // v: 'yes' | 'no'
+        sessionStorage.setItem('proteinDietChoice', v);
+        // Repaint quotas because targets changed
+        try {
+          if (window.CURRENT_CTX?.cat && window.CURRENT_CTX?.sub) {
+            renderQuotaAndLocks(CURRENT_CTX.cat, CURRENT_CTX.sub);
+          }
+        } catch {}
+        // Update chip UI if visible
+        try { renderProteinSettingsChip(CURRENT_CTX?.cat || null); } catch {}
+      }
+
+      BTN_YES?.addEventListener('click', () => { setSeafoodChoice('yes'); closeModal(); });
+      BTN_NO ?.addEventListener('click', () => { setSeafoodChoice('no');  closeModal(); });
+      BTN_X  ?.addEventListener('click', closeModal);
+      MODAL.addEventListener('click', (e)=>{ if(e.target === MODAL) closeModal(); });
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !MODAL.classList.contains('hidden')) closeModal(); });
+
+      // Public guard-checked entry point: show only at Proteins → Legumes, once per session
+      // (We intentionally DO re-show on a new weekly flow because sessionStorage is cleared by the user per tab/session.)
+      window.maybeShowProteinDietPrompt = function(catKey, subKey){
+        if (catKey !== 'proteins' || subKey !== 'legumes_pulses') return;
+        // Only if not already answered this session
+        const choice = sessionStorage.getItem('proteinDietChoice');
+        if (!choice) openModal();
+      };
+
+      // Skip logic: if 'no', skip the Seafood subcategory entirely in the router
+      window.shouldSkipSubcat = function(catKey, subKey){
+        if (catKey !== 'proteins') return false;
+        const choice = (sessionStorage.getItem('proteinDietChoice') || '').toLowerCase();
+        if (subKey === 'seafood' && choice === 'no') return true;
+        return false;
+      };
+
+      // Small settings chip in Proteins header to toggle choice
+      window.renderProteinSettingsChip = function(catKey){
+        const where = document.getElementById('subcatHint'); // right under breadcrumb/title
+        if (!where) return;
+
+        // ensure a container exists
+        let chip = document.getElementById('proteinChoiceChip');
+        const mustShow = (catKey === 'proteins');
+        if (!mustShow){
+          if (chip) chip.remove();
+          return;
+        }
+
+        const choice = (sessionStorage.getItem('proteinDietChoice') || 'yes').toLowerCase();
+        const label = (choice === 'no') ? 'Protein settings: Seafood OFF (toggle)' : 'Protein settings: Seafood ON (toggle)';
+
+        if (!chip){
+          chip = document.createElement('button');
+          chip.id = 'proteinChoiceChip';
+          chip.className = 'btn ghost';
+          chip.style.marginLeft = '8px';
+          chip.title = 'Adjust weekly protein settings';
+          where.insertAdjacentElement('afterend', chip);
+        }
+        chip.textContent = label;
+        chip.onclick = () => {
+          // open the same modal so user can switch
+          openModal();
+        };
+      };
+
     })();
     </script>
 
@@ -8364,6 +8585,26 @@
         if (localStorage.getItem(MODAL_ID)) return;
         open();
       };
+    })();
+    </script>
+
+    <script>
+    // Mark which modals the router is allowed to auto-close when changing subcategories.
+    // Runs after modal HTML has been parsed (we're placing it right after all modal setup blocks).
+    (function markRouteManaged(){
+      [
+        'dairyOverviewModal',
+        'proteinDietModal',
+        'proteinScorecardModal',
+        'seafoodModal',
+        'oilsFatsModal',
+        'flavorVegModal',
+        'boostersModal',
+        // 'foodModal', // optional; include if you want router to auto-close the Food Profile
+      ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute('data-route-managed', '1');
+      });
     })();
     </script>
 
@@ -8609,6 +8850,309 @@
       });
     })();
     </script>
+
+    <script>
+    // ———  Central Ohio Grocery Loop (display order) ———
+    const ZONES = [
+      {key:'produce',  icon:'🥬', title:'Produce — Start Fresh'},
+      {key:'bakery',   icon:'🍞', title:'Bakery — Bread & Aroma'},
+      {key:'protein',  icon:'🍔', title:'Fresh Proteins'},   // ← changed
+      {key:'dry',      icon:'📦', title:'Dry Goods — Pantry Core'},
+      {key:'dairy',    icon:'🥛', title:'Dairy & Eggs — Cool Corner'},
+      {key:'frozen',   icon:'🧊', title:'Frozen — Last Stop Chill'},
+      {key:'checkout', icon:'🧻', title:'Checkout & Household'}
+    ];
+
+    
+    // ———  Helpers ———
+    function norm(s){ return String(s||'').trim().toLowerCase(); }
+    function deSlug(s){
+      // Collapse punctuation/slashes and common unit words to improve matching
+      return norm(s)
+        .replace(/\u2019/g,"'")     // curly apostrophes → straight
+        .replace(/[\(\)\[\],:]/g,' ')
+        .replace(/\/+/g,' / ')      // keep slashes but space them
+        .replace(/\s+/g,' ')
+        .trim();
+    }
+    
+    // Optional thumbnails via a simple slug rule (use if your art follows a pattern).
+    // If you already have ITEM_IMG from before, keep it;
+    // otherwise this will try "assets/<zone>/<slug>.png"
+    const ITEM_IMG = {}; // leave empty to use slug rule
+    
+    function slugify(name){
+      return deSlug(name)
+        .replace(/[^a-z0-9]+/g,'_')
+        .replace(/^_|_$/g,'');
+    }
+    function imageFor(name, zoneGuess){
+      const key = norm(name);
+      if (ITEM_IMG[key]) return ITEM_IMG[key];
+      // Fallback: predictable slug path if your assets follow a folder scheme.
+      // Example folders: assets/produce/, assets/dairy/, assets/dry/, assets/frozen/, assets/protein/, assets/household/
+      const slug = slugify(name);
+      if (!slug) return null;
+      const folder = ({
+        frozen:'frozen',
+        dairy:'dairy',
+        protein:'protein',
+        checkout:'household',
+        bakery:'bakery'
+      })[zoneGuess] || 'produce'; // default to produce if unknown
+      return `assets/${folder}/${slug}.png`;
+    }
+    
+    // ———  Pattern-based zone inference ———
+    // Order matters: first match wins.
+    const PATTERN_ZONE = [
+      // 1) Explicit "frozen" first
+      [/^\s*frozen\b/i,                'frozen'],
+      [/\b(frozen|freezer)\b/i,        'frozen'],
+    
+      // 2) Dairy & Eggs
+      [/\b(milk|yogurt|kefir|cheese|ricotta|mozzarella|daiya|butter|cream cheese|sour cream|cottage)\b/i, 'dairy'],
+      [/\begg(s| substitute)?\b/i,     'dairy'],
+    
+      // 3) Seafood
+      [/\b(salmon|tuna|tilapia|shrimp|cod|pollock|trout|crab|clam|oyster|scallop|crawfish|mussel|sardine|anchov(y|ies)|mackerel|lobster|catfish)\b/i, 'protein'],
+    
+      // 4) Complete proteins & meats
+      [/\b(tofu|tempeh|edamame|seitan|tvp|quinoa|amaranth|buckwheat|wild\s*rice)\b/i, 'protein'],
+      [/\b(chicken|turkey|beef|pork|lamb|goat)\b/i, 'protein'],
+    
+      // 5) Legumes & pulses
+      [/\b(black|pinto|kidney|navy|fava|adzuki|mung|lima|butter)[ -]?beans?\b/i, 'protein'],
+      [/\b(chickpea|garbanzo|lentils?|split\s*peas?)\b/i, 'protein'],
+      [/\b(peanuts?|peanut butter)\b/i, 'protein'],
+    
+      // 6) Bakery (explicit)
+      [/\b(bagels?|bakery bread|fresh bread|baguette|boule)\b/i, 'bakery'],
+    
+      // 7) Grains / Dry staples
+      [/\b(wheat|rye|kamut|barley|sorghum|millet|oats?|couscous|pasta|rice|cornmeal|polenta|tortillas?)\b/i, 'dry'],
+    
+      // 8) Oils & pantry sweeteners / beverages / jars
+      [/\b(olive|canola|soy|sunflower|safflower|grapeseed|avocado|sesame|flax|walnut|peanut)\s*oil\b/i, 'dry'],
+      [/\b(honey|maple syrup|agave|molasses|cocoa|cacao|chocolate)\b/i, 'dry'],
+      [/\b(coffee|green tea|black tea|yerba mate|kombucha)\b/i, 'dry'],
+      [/\b(vinegar|miso|kimchi|sauerkraut|olives?)\b/i, 'dry'],
+      [/\b(spaghetti sauce|canned tomatoes?)\b/i, 'dry'],
+      [/\b(salt|pepper|paprika|cumin|coriander|turmeric|ginger|cinnamon|nutmeg|cloves?|cardamom|rosemary|marjoram|tarragon|bay\s*leaf|fennel\s*seeds?)\b/i, 'dry'],
+    
+      // 9) Flavor vegetables / fresh herbs → produce
+      [/\b(garlic|onions?|shallots?|scallions?|green onions?|chives|jalapeñ|serrano|habaner|poblano|guajillo|ancho|mirasol|árbol|cayenne|anaheim)\b/i, 'produce'],
+      [/\b(parsley|cilantro|basil|mint|spearmint|peppermint|lemongrass|sage|oregano|thyme|dill|chervil|epazote|tulsi)\b/i, 'produce'],
+    
+      // 10) Fruits (broad)
+      [/\b(strawberr|blueberr|raspberr|blackberr|cranberr|mulberr|grapes?|cherries|figs?|plums?|guava|pomegranate|pomelos?|starfruit|ugli|buddha'?s\s*hand)\b/i, 'produce'],
+      [/\b(oranges?|mandarins?|tangerines?|clementines?|lemons?|limes?|grapefruit|tangelos?|kumquats|blood oranges?)\b/i, 'produce'],
+      [/\b(watermelon|cantaloupe|honeydew|galia|canary)\b/i, 'produce'],
+      [/\b(peaches?|nectarines?|mangoes?|papaya|persimmons?|jackfruit|mamey|nance|horned melon|dragonfruit|pitaya|tamarind|pawpaws?|soursop|guanabana)\b/i, 'produce'],
+      [/\b(apples?|pears?|bananas?|plantains?|avocados?)\b/i, 'produce'],
+    
+      // 11) Leafy/Cruciferous/Roots (produce)
+      [/\b(spinach|romaine|lettuce|kale|chard|collard|arugula|watercress|endive|escarole|frisee|savoy|napa|broccolini|broccoli\s*ra(b|p)ini?)\b/i, 'produce'],
+      [/\b(cabbage|broccoli|cauliflower|radishes?|turnips?|rutabaga|bok\s*choy|daikon|kohlrabi)\b/i, 'produce'],
+      [/\b(carrots?|beets?|delicata|kabocha|hubbard|butternut|acorn|pumpkin|spaghetti\s*squash)\b/i, 'produce'],
+      [/\b(sweet\s*potatoes?|yams?|potatoes?|yukon gold|fingerling|purple\s*potatoes?)\b/i, 'produce'],
+      [/\b(tomatoes?|bell\s*peppers?)\b/i, 'produce'],
+    
+      // 12) Seaweeds (often dry shelf or sushi fridge—route to dry unless "fresh/vacuum" shows)
+      [/\b(nori|seaweed|kelp)\b/i, 'dry'],
+    
+      // 13) Household / checkout
+      [/\b(paper\s*towels?|paper\s*plates?|nonstick\s*spray|foil|wrap|detergent|soap)\b/i, 'checkout'],
+    
+      // 14) Fallbacks
+      [/\b(bagels?|bakery)\b/i, 'bakery'],
+      [/./, 'dry'] // default if nothing matched
+    ];
+    
+    // Zone resolver
+    function guessZone(itemName){
+      const s = deSlug(itemName);
+      for (const [rx, zone] of PATTERN_ZONE){
+        if (rx.test(s)) return zone;
+      }
+      return 'dry';
+    }
+    
+    // ———  Core: organize array of items [{name, note?}] into store loop ———
+    function organizeIntoZones(items){
+      const buckets = Object.fromEntries(ZONES.map(z => [z.key, []]));
+      items.forEach(it => {
+        const name = typeof it === 'string' ? it : it.name;
+        const zone = guessZone(name);
+        buckets[zone]?.push(it);
+      });
+      return buckets;
+    }
+    
+    function renderOrganizedList(items, {showImages=true}={}){
+      const wrap = document.getElementById('organized-output');
+      if (!wrap) return;
+      wrap.innerHTML = '';
+    
+      // —— Blurbs for each zone (your exact copy, condensed into Where/Includes/App Tip) ——
+      const ZONE_BLURBS = {
+        produce: {
+          where: 'Right at the entrance.',
+          includes: 'Fresh fruits, vegetables, salad mixes, herbs, mushrooms, bagged greens. Often here: fresh-pressed/cold juices; refrigerated tofu/tempeh; small vegan dips/hummus.',
+          tip: 'Let users mark “produce-adjacent finds” so tofu, juice, or plant yogurts get logged automatically.'
+        },
+        bakery: {
+          where: 'Immediately adjoining produce (or across the aisle).',
+          includes: 'Fresh breads, rolls, bagels, muffins, sometimes desserts.',
+          tip: 'Add a 🍞 “Bakery alternatives” toggle—if fresh bakery picked, de-prioritize dry bread aisles.'
+        },
+        protein: {
+          where: 'Along the first perimeter wall after bakery.',
+          includes: 'Fresh meat, seafood, poultry; packaged meat substitutes (Tofurky, Impossible, Jack & Annie’s).',
+          tip: 'If meat-alternatives already found in Produce, auto-skip here.'
+        },
+        dry: {
+          where: 'Middle aisles (pantry staples).',
+          includes: 'Canned/boxed/bagged foods, grains, oils, spices, snacks, baking, sauces, nut butters, coffee/tea.',
+          tip: 'Group by Pantry Tiers: 🟢 A=months-safe • 🟡 B≈3-weeks • 🔴 C=fresh/weekly.'
+        },
+        dairy: {
+          where: 'Rear or side-rear, just before frozen.',
+          includes: 'Dairy & plant milks, yogurts, eggs, cheeses, butter & spreads.',
+          tip: 'If user adds cashew milk, suggest dairy-free butter, etc.'
+        },
+        frozen: {
+          where: 'Opposite side wall leading to checkout.',
+          includes: 'Frozen veg/fruit, plant-based meats, quick meals, desserts, fries, ice creams.',
+          tip: 'Offer an “🧊 Frozen-only shortcut” for mini trips.'
+        },
+        checkout: {
+          where: 'Front near exit.',
+          includes: 'Paper goods, plates, soaps, seasonal/impulse.',
+          tip: 'Remind to check “Always-In-Stock” list (paper goods, etc.).'
+        }
+      };
+    
+      // —— Group into store buckets (reuses your existing helpers) ——
+      const buckets = organizeIntoZones(items);
+    
+      // —— Header block with your loop text ——
+      const header = document.createElement('div');
+      header.className = 'head';
+      header.innerHTML = `
+        <div style="margin:6px 0 10px;">
+          <div style="font-weight:700;">🌀 Central Ohio Grocery Loop (Real-World Layout)</div>
+          <div class="blurb">Follow the perimeter → finish in center aisles → end at frozen & checkout.</div>
+        </div>`;
+      wrap.appendChild(header);
+    
+      // —— Build two-column grid of zone cards ——
+      const grid = document.createElement('div');
+      grid.className = 'org-grid';
+      wrap.appendChild(grid);
+    
+      // helper: collapse identical package labels in the “note” field → counts
+      function collapsePackages(noteStr){
+        if (!noteStr) return [];
+        // notes look like "Bag pre-chopped 10 oz (+7 servs) • Bunch 8 oz (+6 servs) • Bag pre-chopped 10 oz (+7 servs)"
+        const tokens = String(noteStr).split('•').map(s => s.trim()).filter(Boolean);
+        const counts = new Map();
+        tokens.forEach(tok => {
+          const label = tok.split('(+')[0].trim(); // strip the "(+… servs)" tail
+          if (!label) return;
+          counts.set(label, (counts.get(label) || 0) + 1);
+        });
+        return [...counts.entries()].sort((a,b)=>a[0].localeCompare(b[0])); // [label,count]
+      }
+    
+      ZONES.forEach(z => {
+        const group = (buckets[z.key] || []);
+        if (!group.length) return;
+    
+        const card = document.createElement('div');
+        card.className = 'org-card';
+    
+        // Zone header + blurb
+        const blurb = ZONE_BLURBS[z.key] || {};
+        card.innerHTML = `
+          <h3>${z.icon} ${z.title}</h3>
+          <div class="blurb"><strong>Where:</strong> ${blurb.where||''}</div>
+          <div class="blurb"><strong>Includes:</strong> ${blurb.includes||''}</div>
+          <div class="blurb"><strong>App Tip:</strong> ${blurb.tip||''}</div>
+        `;
+    
+        // Numbered list with collapsed packages
+        const ol = document.createElement('ol');
+    
+        group.forEach((raw, idx) => {
+          const name = typeof raw === 'string' ? raw : raw.name;
+          const note = typeof raw === 'string' ? ''   : (raw.note || '');
+    
+          // Build “N × label; M × label2 …” string
+          const packs = collapsePackages(note);
+          const rhs   = packs.length ? ' — ' + packs.map(([lab,c]) => `${c} × ${lab}`).join('; ') : '';
+    
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${name}</strong>${rhs}`;
+          ol.appendChild(li);
+        });
+    
+        card.appendChild(ol);
+        grid.appendChild(card);
+      });
+    }
+
+    
+    // ———  Read your existing flat list → render grouped ———
+    //
+    // If your shopping UI renders a table inside #shoppingTableWrap, this parser
+    // will work out-of-the-box. It prefers <tr data-name="…"> if present; otherwise
+    // it falls back to cell text (1st column = name, 2nd column = note).
+    function getCurrentShoppingItems(){
+      const wrap = document.getElementById('shoppingTableWrap');
+      if (!wrap) return [];
+    
+      const byData = [...wrap.querySelectorAll('tr[data-name]')].map(tr => ({
+        name: tr.getAttribute('data-name'),
+        note: tr.getAttribute('data-note') || ''
+      }));
+      if (byData.length) return byData;
+    
+      const rows = [...wrap.querySelectorAll('tr')].filter(r => r.querySelector('td,th'));
+      const items = [];
+      rows.forEach(r => {
+        const cells = r.querySelectorAll('td,th');
+        if (!cells.length) return;
+        const name = cells[0].textContent.trim();
+        if (!name) return;
+        const note = cells[1]?.textContent?.trim() || '';
+        items.push({name, note});
+      });
+      return items;
+    }
+    
+    // Wire the button
+    document.getElementById('btn-organize')?.addEventListener('click', () => {
+      const items = getCurrentShoppingItems();
+      renderOrganizedList(items, {showImages:true});
+    });
+    
+    window.resetEducationPopups = function(){
+      [
+        'dairyOverviewSeen_v1',
+        'proteinScorecardSeen_v1',
+        'seafoodSeen_v1',
+        'oilsFatsSeen_v1',
+        'flavorVegSeen_v1',
+        'boostersSeen_v1'
+      ].forEach(k => localStorage.removeItem(k));
+      sessionStorage.removeItem('proteinDietChoice');
+      console.log('[tips] cleared all modal flags');
+    };
+
+    </script>
+
+ 
 
     </body>
     </html>
