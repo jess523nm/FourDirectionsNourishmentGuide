@@ -325,14 +325,20 @@
       <p>Plan a realistic, nourishing grocery week with one click.</p>
 
       <div class="home-links">
-        <a class="home-card" href="https://jess523m.github.io/FreedomGardens/">
+        <a class="home-card"
+          href="https://jess523nm.github.io/FreedomGardens/"
+          target="_blank"
+          rel="noopener">
           <img src="assets/freedom.png" alt="Freedom Garden Guide">
           <span>Freedom Garden Guide</span>
         </a>
 
         <button class="cta" id="startPlanBtn">🛒 Plan my weekly shopping trip</button>
 
-        <a class="home-card" href="#">
+        <a class="home-card"
+          href="https://jess523nm.github.io/PlantBasedHealing/"
+          target="_blank"
+          rel="noopener">
           <img src="assets/plantbased.png" alt="Plant-Based Healing">
           <span>Plant-Based Healing</span>
         </a>
@@ -388,11 +394,19 @@
       <div class="card">
         <h2>How deep do you want to go this week?</h2>
         <p class="dim">Pick your overall intensity. You can always edit per-category later.</p>
+
         <div class="row">
           <button class="btn ghost" data-intensity="0.25">🧪 Just dipping a toe (¼)</button>
           <button class="btn ghost" data-intensity="0.5">🏃 Really trying it out (½)</button>
           <button class="btn primary" data-intensity="1">🔥 I’m all in! (1×)</button>
         </div>
+
+        <!-- Pantry checkbox -->
+        <label style="display:flex; align-items:center; gap:10px; margin-top:14px; cursor:pointer;">
+          <input type="checkbox" id="pantryCheck">
+          <span>I’d also like to use this app for long-term pantry stocking</span>
+        </label>
+
         <div class="toolbar">
           <span class="pill">Household: <span id="pillHousehold">—</span></span>
           <button class="btn" id="toFirstSubcatBtn" disabled>Start with Vegetables (1.1 Leafy)</button>
@@ -429,6 +443,20 @@
       const saved = (window.state && typeof state.intensity === 'number') ? state.intensity : null;
       const fallback = btns.find(b => b.classList.contains('primary'));
       select(saved ?? parseFloat(fallback?.dataset.intensity ?? '1'));
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const pantryCheck = document.getElementById('pantryCheck');
+
+      if (pantryCheck) {
+        pantryCheck.addEventListener('change', () => {
+          if (pantryCheck.checked) {
+            window.location.href = "pantry.html";
+          }
+        });
+      }
     });
     </script>
 
