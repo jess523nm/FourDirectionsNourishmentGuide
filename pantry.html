@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pantry</title>
+
+  <!-- Minimal page styles -->
+  <style>
+    :root { --ink:#1e2c42; --muted:#5e6e8d; --card:#ffffff; --bg:#eef3f9; }
+    html,body { height:100%; margin:0; font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--ink); background:var(--bg); }
+    .app { max-width:900px; margin:24px auto; padding:16px; }
+    .card { background:var(--card); border:1px solid #e7ecf4; border-radius:14px; box-shadow:0 6px 18px rgba(20,40,80,.06); }
+    .pad { padding:16px; }
+    h1 { margin:0 0 12px; font-size:1.4rem; }
+    h3 { margin:24px 0 8px; }
+    .row { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid #eee; }
+    .row.grey { opacity:0.45; }
+    .row.active { opacity:1; font-weight:500; }
+    .pm { min-width:2.25rem; height:2rem; font-size:1.2rem; }
+    .cat { margin:16px 0; border:1px solid #eee; border-radius:8px; overflow:hidden; }
+    .cat.unused { opacity:.35; }
+    .cat-header { background:#f9fbfe; padding:8px 12px; font-weight:600; }
+    .catpill { background:#f3f3f3; font-size:0.8rem; padding:2px 6px; border-radius:12px; margin-left:6px; }
+    .notice { border:1px dashed #cbd6ea; background:#f7faff; color:#3a5788; padding:12px; border-radius:10px; }
+    .stack { display:grid; gap:12px; }
+    .status-btn { min-width:6.5rem; height:2rem; border:1px solid #dbe2ee; border-radius:10px; font-weight:600; }
+    .status-btn.out { background:#ffe9ea; color:#7a1c22; border-color:#f5c3c6; }
+    .status-btn.low { background:#fff7e0; color:#7a5b00; border-color:#f1df9c; }
+    .status-btn.stocked { background:#eaf8ee; color:#1f6b3a; border-color:#bfe7c8; }
+    .status-btn:disabled { opacity:.45; cursor:not-allowed; }
+    .cat.hl { outline:3px solid #78d6ff; box-shadow:0 0 0 3px rgba(120,214,255,.25) inset; }
+    /* --- Intro modal --- */
+    .modal-overlay{position:fixed;inset:0;background:rgba(6,20,35,.45);backdrop-filter:blur(2px);display:none;z-index:1000;}
+    .intro-modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:700px;width:92%;background:#fff;border-radius:18px;box-shadow:0 18px 60px rgba(20,40,80,.25);border:1px solid #e4ebf6;}
+    .intro-modal .head{padding:18px 20px 8px;border-bottom:1px solid #eef3fb}
+    .intro-modal .head h2{margin:0;font-size:1.25rem}
+    .intro-modal .body{padding:16px 20px;color:#2a3a54}
+    .intro-modal .body p{margin:.5rem 0}
+    .intro-modal .body ul{margin:.5rem 0 0 1.25rem}
+    .intro-modal .foot{display:flex;gap:10px;justify-content:flex-end;padding:12px 20px;border-top:1px solid #eef3fb}
+    .btn{border:1px solid #cfe0f6;border-radius:12px;padding:10px 14px;font-weight:600;background:#f8fbff}
+    .btn.primary{background:linear-gradient(180deg,#7bd6ff,#53baf0);color:#073044;border-color:#53baf0}
+    .btn.link{background:transparent;border-color:transparent;color:#395b8a;text-decoration:underline}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card pad stack">
+      <h1>Pantry</h1>
+
+      <!-- Onboarding -->
+        <section id="onboarding" class="notice" style="display:none;">
+          <p><strong>Pantry setup (one-time):</strong> Check the items you want to <em>keep as staples</em>, and mark today’s status as <em>Out / Low / Stocked</em>. You can update this anytime.</p>
+          <p style="margin-top:8px;"><strong>Heads up:</strong> Nothing lasts forever. Double-check expiration dates and packaging while you review your pantry. <button type="button" id="moreInfoBtn" style="margin-left:6px;">More info</button></p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            <button onclick="startOnboarding()">Start walkthrough</button>
+            <button onclick="goNextCategory()" data-step>Next</button>
+            <button onclick="completeFirstRun(); maybeShowOnboarding();" title="You can re-open later">Finish</button>
+          </div>
+        </section>
+        
+        <!-- More Info modal -->
+        <div id="moreInfoModal" class="card pad" style="display:none; position:fixed; inset:0; margin:auto; max-width:640px; max-height:80vh; overflow:auto; z-index:999; border:1px solid #cbd6ea;">
+          <h3>Why eating expired food can be risky</h3>
+          <p>“Best by,” “Use by,” and “Sell by” dates can mean different things. Some foods only lose flavor or texture after the date, while others can actually become unsafe to eat.</p>
+          <p>Here’s a quick overview of what tends to be <strong>high, medium, and low risk</strong> when eaten past the date:</p>
+          <p><strong>High risk:</strong> fresh meat, poultry, seafood, deli foods, soft cheeses, leftovers. Risk: harmful bacteria or toxins can grow even if food looks fine. Watch for: slime, swelling packages, sour smell, visible mold.</p>
+          <p><strong>Medium risk:</strong> canned/jarred goods that are dented, bulging, rusty, or very long past date. Risk: quality loss and possible toxin growth if the seal is compromised. Watch for: swelling, leaks, off smells/taste.</p>
+          <p><strong>Low risk:</strong> dry goods like pasta, beans, rice, or unopened canned foods in good condition. Risk: flavor and nutrients fade more than safety—still check for moisture, pests, or odd smells.</p>
+          <p><em>When in doubt, throw it out.</em> This list isn’t comprehensive—always research specific foods if you’re unsure.</p>
+          <div style="margin-top:8px;">
+            <button id="closeMoreInfo">Close</button>
+          </div>
+        </div>
+
+        <!-- First-run Intro Modal -->
+        <div id="introOverlay" class="modal-overlay">
+          <div class="intro-modal card">
+            <div class="head"><h2>Welcome to Pantry Inventory</h2></div>
+            <div class="body">
+              <p>We’re about to walk you through your full pantry with common items.</p>
+              <ul>
+                <li>Click the items you want to <strong>keep stocked</strong>.</li>
+                <li>Mark each as <em>Stocked, Low, or Out</em>.</li>
+                <li>Use the “Add another item…” box to include anything missing.</li>
+              </ul>
+              <p>We’ll keep this behind the scenes so each week you can quickly
+              review your pantry before shopping. When you start buying new long-term items,
+              we’ll add them to your pantry automatically. You can remove items anytime by
+              unchecking them.</p>
+              <p style="margin-top:8px;"><strong>Heads up:</strong> nothing lasts forever—double-check expiration dates and packaging. <button type="button" id="introMoreInfo" class="btn link">More info</button></p>
+            </div>
+            <div class="foot">
+              <button id="introSkip" class="btn">Skip for now</button>
+              <button id="introStart" class="btn primary">Start inventory</button>
+            </div>
+          </div>
+        </div>
+
+
+      <!-- Pantry mount -->
+      <div id="pantry"></div>
+
+      <!-- Shopping list -->
+      <div class="pad">
+        <h3>Shopping List (Pantry Restocks)</h3>
+        <ul id="shopping"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // --- PANTRY STATE START ---
+  const FIRST_RUN_KEY = 'pantry_first_run_v1';
+  const PANTRY_KEY = 'pantry_state_v1';
+
+    // Tri-state inventory status
+    const STATUS_ORDER = ['out','low','stocked'];
+    function nextStatus(s) {
+      const i = STATUS_ORDER.indexOf(s);
+      return STATUS_ORDER[(i + 1) % STATUS_ORDER.length];
+    }
+    function statusLabel(s) {
+      return s === 'out' ? 'Out' : s === 'low' ? 'Low' : 'Stocked';
+    }
+
+  // Starter data (you can split this out later)
+  const PANTRY_CATEGORIES = [
+    {
+      id: 'spices',
+      label: 'Spices & Dried Herbs',
+      items: [
+        'Black pepper','Garlic powder','Onion powder','Cinnamon',
+        'Chili powder','Cumin','Paprika (sweet)','Smoked paprika',
+        'Italian seasoning','Oregano','Basil','Thyme','Crushed red pepper',
+        'Curry powder','Bay leaves','Ground ginger','Cayenne','Turmeric',
+        'Ground coriander','Rosemary','Nutmeg','Cloves','Cardamom'
+      ]
+    },
+    {
+      id: 'flours_salts_starches',
+      label: 'Flours, Salts & Starches',
+      items: [
+        'All-purpose flour','Whole-wheat flour','Bread flour','Salt',
+        'Cornstarch','Baking powder','Baking soda','Yeast (dry)'
+      ]
+    },
+    {
+      id: 'baking_sweeteners',
+      label: 'Baking & Sweeteners',
+      items: [
+        'Sugar (granulated)','Brown sugar','Powdered sugar','Cocoa powder',
+        'Vanilla extract','Chocolate chips','Maple syrup','Honey','Molasses','Agave syrup'
+      ]
+    },
+    {
+      id: 'grains',
+      label: 'Grains & Dry Starches',
+      items: [
+        'Rice','Pasta','Oats','Couscous','Quinoa','Bulgur','Farro','Barley',
+        'Cornmeal/Polenta','Grits','Masa harina','Rice noodles','Soba/Udon (dry)',
+        'Egg noodles (dry)','Millet','Buckwheat','Kamut'
+      ]
+    },
+    {
+      id: 'legumes_proteins',
+      label: 'Legumes & Canned Proteins',
+      items: [
+        'Black beans (dry)','Pinto beans (dry)','Kidney beans (dry)','Chickpeas (dry)',
+        'Lentils (brown/green)','Red lentils','Navy/Great Northern','Split peas',
+        'Black beans (canned)','Pinto beans (canned)','Kidney beans (canned)',
+        'Chickpeas (canned)','Lentils (canned)','Refried beans (canned)',
+        'Tuna','Sardines','Salmon','Chicken','Turkey','Anchovies','Mackerel'
+      ]
+    },
+    {
+      id: 'nuts_seeds',
+      label: 'Nuts, Seeds & Nut/Seed Butters',
+      items: [
+        'Peanut butter','Almond butter','Cashew butter','Tahini','Sunflower seed butter',
+        'Peanuts','Almonds','Walnuts','Pecans','Cashews','Pistachios',
+        'Pumpkin seeds','Sunflower seeds','Chia seeds','Flaxseed (whole)','Trail mix'
+      ]
+    },
+    {
+      id: 'oils_vinegars_savory',
+      label: 'Oils, Vinegars & Savory Liquids',
+      items: [
+        'Olive oil','Avocado oil','Canola/Neutral oil','Peanut oil','Sesame oil (toasted)',
+        'Distilled white vinegar','Apple cider vinegar','Balsamic vinegar','Red wine vinegar','Rice vinegar',
+        'Soy sauce/Tamari','Bouillon cubes/paste','Chicken broth','Beef broth','Vegetable broth','Boxed soups'
+      ]
+    },
+    {
+      id: 'canned_nonprotein',
+      label: 'Canned & Jarred (Non-protein Staples)',
+      items: [
+        'Tomato sauce','Crushed tomatoes','Diced tomatoes','Tomato paste','Pasta sauce',
+        'Canned corn','Canned pumpkin','Green chiles','Enchilada sauce','Salsa (shelf-stable)'
+      ]
+    },
+    {
+      id: 'chiles',
+      label: 'Chiles & Heat (Dried + Canned)',
+      items: [
+        'Ancho (dried)','Guajillo (dried)','Árbol (dried)','Chipotle morita (dried)',
+        'Red pepper flakes','Dried minced onion','Dried minced garlic',
+        'Chipotles in adobo (canned)','Diced green chiles (canned)','Roasted green chiles (canned)'
+      ]
+    },
+    {
+      id: 'beverages_treats',
+      label: 'Beverages & Treats',
+      items: ['Coffee (ground/whole)','Tea (black)','Tea (green)','Herbal tea','Chocolate bars','Cacao nibs']
+    },
+    // ---------- OPTIONAL (always render at bottom) ----------
+    {
+      id: 'household',
+      label: 'Household',
+      items: [
+        'Toilet paper','Paper towels','Trash bags','Dish soap','Dishwasher detergent',
+        'Laundry detergent','Stain remover','Sponges/scrubbers','All-purpose cleaner',
+        'Disinfecting wipes','Hand soap','Aluminum foil','Parchment paper','Plastic wrap',
+        'Zipper bags','Light bulbs','Batteries'
+      ]
+    },
+    {
+      id: 'babies',
+      label: 'Babies',
+      items: [
+        'Diapers','Wipes','Diaper cream','Baby wash','Baby shampoo','Baby lotion',
+        'Baby toothpaste','Infant acetaminophen','Infant ibuprofen','Saline spray',
+        'Nasal aspirator filters','Baby detergent','Bibs','Diaper pail bags'
+      ]
+    },
+    {
+      id: 'pets',
+      label: 'Pets',
+      items: [
+        'Dog food','Cat food','Treats','Cat litter','Waste bags','Training pads',
+        'Pet shampoo','Flea/tick treatment'
+      ]
+    }
+  ];
+
+  // State shape: { [categoryId]: { [itemName]: { selected:boolean, status:'stocked'|'out', custom?:boolean } , _custom: { [customName]: {...} } } }
+  function loadPantryState() {
+    const raw = localStorage.getItem(PANTRY_KEY);
+    if (raw) return JSON.parse(raw);
+    // build default (all unselected)
+    const blank = {};
+    for (const cat of PANTRY_CATEGORIES) {
+      blank[cat.id] = { _custom: {} };
+      for (const name of cat.items) {
+        blank[cat.id][name] = { selected: false, status: 'stocked', custom: false };
+      }
+    }
+    return blank;
+  }
+  function savePantryState(state) {
+    localStorage.setItem(PANTRY_KEY, JSON.stringify(state));
+  }
+  let PANTRY_STATE = loadPantryState();
+
+  const OPTIONAL_CATEGORY_IDS = ['household','babies','pets'];
+
+    let SETUP_INDEX = 0;
+    function allCategoryIdsInOrder() {
+      const primary = PANTRY_CATEGORIES.filter(c => !OPTIONAL_CATEGORY_IDS.includes(c.id));
+      const optional = PANTRY_CATEGORIES.filter(c => OPTIONAL_CATEGORY_IDS.includes(c.id));
+      return [...primary, ...optional].map(c => c.id);
+    }
+    function highlightCategory(catId) {
+      document.querySelectorAll('.cat').forEach(s => s.classList.remove('hl'));
+      const sec = document.querySelector(`.cat .items[data-cat="${catId}"]`)?.closest('.cat');
+      if (sec) {
+        sec.classList.add('hl');
+        sec.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    }
+    function goNextCategory() {
+      const ids = allCategoryIdsInOrder();
+      SETUP_INDEX = Math.min(SETUP_INDEX + 1, ids.length - 1);
+      highlightCategory(ids[SETUP_INDEX]);
+      if (SETUP_INDEX === ids.length - 1) {
+        // last category – show Finish hint
+        const onb = document.querySelector('#onboarding');
+        if (onb) onb.querySelector('[data-step]').textContent = 'Finish';
+      }
+    }
+
+  function categoryHasAnySelected(catId) {
+    const catState = PANTRY_STATE[catId];
+    if (!catState) return false;
+    // check built-ins
+    for (const key of Object.keys(catState)) {
+      if (key === '_custom') continue;
+      if (catState[key].selected) return true;
+    }
+    // check custom
+    if (catState._custom) {
+      for (const k of Object.keys(catState._custom)) {
+        if (catState._custom[k].selected) return true;
+      }
+    }
+    return false;
+  }
+
+  function isFirstRun() {
+    return !localStorage.getItem(FIRST_RUN_KEY);
+  }
+  function completeFirstRun() {
+    localStorage.setItem(FIRST_RUN_KEY, 'done');
+  }
+
+  // Toggle select/unselect for “I stock this”
+  function toggleSelect(catId, itemName) {
+    const catState = PANTRY_STATE[catId];
+    const item = (catState[itemName]) || (catState._custom && catState._custom[itemName]);
+    if (!item) return;
+
+    const wasSelected = item.selected;
+    item.selected = !item.selected;
+
+    // If this is a custom item and it was selected but now is unselected, delete it.
+    if (item.custom && wasSelected && !item.selected) {
+      delete catState._custom[itemName];
+    } else {
+      // when selecting, default to stocked
+      if (item.selected && !item.status) item.status = 'stocked';
+    }
+
+    savePantryState(PANTRY_STATE);
+    renderCategory(catId);
+    renderShoppingList();
+  }
+
+    function toggleStatus(catId, itemName) {
+      const catState = PANTRY_STATE[catId];
+      const item = catState[itemName] || (catState._custom && catState._custom[itemName]);
+      if (!item || !item.selected) return; // only cycle if user keeps this item
+      item.status = nextStatus(item.status || 'stocked');
+      savePantryState(PANTRY_STATE);
+      renderCategory(catId);
+      renderShoppingList();
+    }
+
+
+  // Get ordered items: selected first (active), then unselected (grey)
+  function getOrderedItems(catId) {
+    const cat = PANTRY_CATEGORIES.find(c => c.id === catId);
+    const base = cat.items.map(name => ({ name, ...PANTRY_STATE[catId][name] }));
+    const customEntries = Object.keys(PANTRY_STATE[catId]._custom || {}).map(name => {
+      return { name, ...PANTRY_STATE[catId]._custom[name] };
+    });
+    const combined = base.concat(customEntries);
+    combined.sort((a, b) => {
+      if (a.selected !== b.selected) return a.selected ? -1 : 1; // selected first
+      return 0; // keep original list order inside groups
+    });
+    return combined;
+  }
+
+  // Build shopping list (all items with status === 'out')
+  function buildShoppingList() {
+    const list = [];
+    for (const cat of PANTRY_CATEGORIES) {
+      // built-ins
+      for (const name of cat.items) {
+        const item = PANTRY_STATE[cat.id][name];
+        if (item.selected && item.status === 'out') list.push({ cat: cat.label, name });
+      }
+      // custom
+      const custom = PANTRY_STATE[cat.id]._custom || {};
+      for (const name of Object.keys(custom)) {
+        const item = custom[name];
+        if (item.selected && item.status === 'out') list.push({ cat: cat.label, name });
+      }
+    }
+    return list;
+  }
+  // --- PANTRY STATE END ---
+
+  // --- PANTRY UI START ---
+  function el(html) {
+    const d = document.createElement('div');
+    d.innerHTML = html.trim();
+    return d.firstChild;
+  }
+
+  // Render one category
+  function renderCategory(catId) {
+    const cat = PANTRY_CATEGORIES.find(c => c.id === catId);
+    const mount = document.querySelector(`.items[data-cat="${catId}"]`);
+    if (!mount) return;
+
+    const ordered = getOrderedItems(catId);
+    mount.innerHTML = '';
+
+    ordered.forEach(({ name, selected, status, custom }) => {
+      const row = el(`
+        <div class="row ${selected ? 'active' : 'grey'}">
+          <label>
+            <input type="checkbox" ${selected ? 'checked' : ''} data-action="select" data-cat="${catId}" data-name="${name}">
+            <span class="item-name">${name}${custom ? ' (custom)' : ''}</span>
+          </label>
+            <button class="status-btn ${status || 'stocked'}" data-action="status" data-cat="${catId}" data-name="${name}" ${selected ? '' : 'disabled'}>
+              ${statusLabel(status || 'stocked')}
+            </button>
+        </div>
+      `);
+      mount.appendChild(row);
+    });
+
+    // --- Add-item form (Other…) ---
+    const add = el(`
+      <div class="row">
+        <input type="text" placeholder="Add another item…" data-add-input="${catId}" style="flex:1; margin-right:8px;">
+        <button data-action="add-custom" data-cat="${catId}">Add</button>
+      </div>
+    `);
+    mount.appendChild(add);
+  }
+
+  // Render all categories (primary first, optional greyed if unused)
+  function renderAllCategories() {
+    const container = document.querySelector('#pantry');
+    container.innerHTML = '';
+
+    const primary = PANTRY_CATEGORIES.filter(c => !OPTIONAL_CATEGORY_IDS.includes(c.id));
+    const optional = PANTRY_CATEGORIES.filter(c => OPTIONAL_CATEGORY_IDS.includes(c.id));
+
+    function renderBlock(cat) {
+      const unused = !categoryHasAnySelected(cat.id);
+      const block = el(`
+        <section class="cat ${unused ? 'unused' : ''}">
+          <header class="cat-header">${cat.label}</header>
+          <div class="items" data-cat="${cat.id}"></div>
+        </section>
+      `);
+      container.appendChild(block);
+      renderCategory(cat.id);
+    }
+
+    primary.forEach(renderBlock);
+    optional.forEach(renderBlock);
+
+    // Event delegation for stocked/out and checkbox
+    container.addEventListener('click', (e) => {
+    const btn = e.target.closest('button.status-btn');
+    if (btn && btn.dataset.action === 'status') {
+      toggleStatus(btn.dataset.cat, btn.dataset.name);
+        const sec = btn.closest('.cat');
+        if (sec) {
+          categoryHasAnySelected(btn.dataset.cat)
+            ? sec.classList.remove('unused')
+            : sec.classList.add('unused');
+        }
+      }
+
+      // Handle Add (custom)
+      const addBtn = e.target.closest('button[data-action="add-custom"]');
+      if (addBtn) {
+        const catId = addBtn.dataset.cat;
+        const input = container.querySelector(`input[data-add-input="${catId}"]`);
+        const name = (input?.value || '').trim();
+        if (!name) return;
+
+        const catState = PANTRY_STATE[catId];
+        if (!catState._custom) catState._custom = {};
+        // if duplicate to a built-in, just toggle select instead
+        if (catState[name]) {
+          catState[name].selected = true;
+          catState[name].status = 'stocked';
+        } else {
+          catState._custom[name] = { selected: true, status: 'stocked', custom: true };
+        }
+        savePantryState(PANTRY_STATE);
+        input.value = '';
+        renderCategory(catId);
+        renderShoppingList();
+
+        const sec = addBtn.closest('.cat');
+        if (sec) {
+          categoryHasAnySelected(catId)
+            ? sec.classList.remove('unused')
+            : sec.classList.add('unused');
+        }
+      }
+    });
+
+    container.addEventListener('change', (e) => {
+      const cb = e.target.closest('input[type="checkbox"][data-action="select"]');
+      if (cb) {
+        toggleSelect(cb.dataset.cat, cb.dataset.name);
+        const sec = cb.closest('.cat');
+        if (sec) {
+          categoryHasAnySelected(cb.dataset.cat)
+            ? sec.classList.remove('unused')
+            : sec.classList.add('unused');
+        }
+      }
+    });
+  }
+
+  // Render shopping list
+  function renderShoppingList() {
+    const list = buildShoppingList();
+    const mount = document.querySelector('#shopping');
+    mount.innerHTML = list.length
+      ? list.map(i => `<li>${i.name} <span class="catpill">${i.cat}</span></li>`).join('')
+      : '<li>(No pantry restocks needed)</li>';
+  }
+
+  // First-run onboarding prompt
+  function maybeShowOnboarding() {
+    const onb = document.querySelector('#onboarding');
+    if (isFirstRun()) {
+      onb.style.display = 'block';
+    } else {
+      onb.style.display = 'none';
+    }
+  }
+
+    function startOnboarding() {
+      // keep first-run banner visible during the walkthrough
+      const ids = allCategoryIdsInOrder();
+      SETUP_INDEX = 0;
+      highlightCategory(ids[0]);
+      const onb = document.querySelector('#onboarding');
+      if (onb) onb.style.display = 'block';
+    }
+    window.startOnboarding = startOnboarding;
+    window.goNextCategory = goNextCategory;
+
+    // More Info modal events
+    document.addEventListener('click', (e) => {
+      if (e.target && e.target.id === 'moreInfoBtn') {
+        document.getElementById('moreInfoModal').style.display = 'block';
+      }
+      if (e.target && e.target.id === 'closeMoreInfo') {
+        document.getElementById('moreInfoModal').style.display = 'none';
+      }
+    });
+
+    // Intro modal logic (first-run)
+    function openIntro(){ document.getElementById('introOverlay').style.display='block'; }
+    function closeIntro(){ document.getElementById('introOverlay').style.display='none'; }
+    function wireIntro(){
+      document.addEventListener('click', (e)=>{
+        if(e.target && e.target.id==='introStart'){
+          closeIntro();
+          startOnboarding();               // jump to first category with highlight
+        }
+        if(e.target && e.target.id==='introSkip'){
+          closeIntro();                    // do nothing else; user can start later
+        }
+        if(e.target && e.target.id==='introMoreInfo'){
+          // open the existing “More info” modal you already added
+          const mi = document.getElementById('moreInfoModal');
+          if(mi){ mi.style.display='block'; }
+        }
+      });
+    }
+    
+    // Decide whether to show intro on first run
+    function maybeShowIntro(){
+      if(isFirstRun()){ openIntro(); }    // only on true first-run
+    }
+
+    function bootPantry() {
+      wireIntro();
+      maybeShowIntro();        // new full-screen intro (first-run only)
+      maybeShowOnboarding();   // keeps your banner visible during walkthrough
+      renderAllCategories();
+      renderShoppingList();
+    }
+
+  document.addEventListener('DOMContentLoaded', bootPantry);
+  // --- PANTRY UI END ---
+
+
+
+
+/*
+Category-C pantry (revised)
+1) Spices & Dried Herbs
+
+(no salt here anymore)
+Black pepper, Garlic powder, Onion powder, Cinnamon, Chili powder, Cumin, Paprika (sweet), Smoked paprika, Italian seasoning, Oregano, Basil, Thyme, Crushed red pepper, Curry powder, Bay leaves, Ground ginger, Cayenne, Turmeric, Ground coriander, Rosemary, Nutmeg, Cloves, Cardamom
+
+2) Flours, Salts & Starches
+
+All-purpose flour, Whole-wheat flour, Bread flour, Salt, Cornstarch, Baking powder, Baking soda, Yeast (dry)
+
+3) Baking & Sweeteners
+
+Sugar (granulated), Brown sugar, Powdered sugar, Cocoa powder, Vanilla extract, Chocolate chips, Maple syrup, Honey, Molasses, Agave syrup
+
+4) Grains & Dry Starches (simple view)
+
+Rice, Pasta, Oats, Couscous, Quinoa, Bulgur, Farro, Barley, Cornmeal/Polenta, Grits, Masa harina, Rice noodles, Soba/Udon (dry), Egg noodles (dry), Millet, Buckwheat, Kamut
+
+(If you later want a “detailed view,” we can fan out rice types, pasta shapes, oat styles, etc.)
+
+5) Legumes & Canned Proteins (combined)
+
+Dry legumes: Black beans, Pinto beans, Kidney beans, Chickpeas, Lentils (brown/green), Red lentils, Navy/Great Northern, Split peas
+Canned proteins: Tuna, Sardines, Salmon, Chicken, Turkey, Anchovies, Mackerel
+Canned legumes: Black beans, Pinto beans, Kidney beans, Chickpeas, Lentils, Refried beans
+
+6) Nuts, Seeds & Nut/Seed Butters
+
+Peanut butter, Almond butter, Cashew butter, Tahini, Sunflower seed butter, Peanuts, Almonds, Walnuts, Pecans, Cashews, Pistachios, Pumpkin seeds, Sunflower seeds, Chia seeds, Flaxseed (whole), Trail mix
+
+(Hemp hearts are Category B now.)
+
+7) Oils, Vinegars & Savory Liquids (incl. broths & soy)
+
+Olive oil, Avocado oil, Canola/Neutral oil, Peanut oil, Sesame oil (toasted),
+Vinegars: Distilled white, Apple cider, Balsamic, Red wine, Rice,
+Soy sauce/Tamari, Coconut aminos (omit by default for your allergy—optional toggle only),
+Broths & bases: Chicken broth/stock, Beef broth/stock, Vegetable broth/stock, Bouillon cubes/paste, Boxed soups
+
+You asked to group salts/vinegars/soy/broths together—salt itself lives in “Flours, Salts & Starches” per your earlier move; everything else is grouped here.
+
+8) Canned & Jarred (Non-protein Staples)
+
+Tomato sauce, Crushed tomatoes, Diced tomatoes, Tomato paste, Pasta sauce, Canned corn, Canned pumpkin, Green chiles, Enchilada sauce, Salsa (shelf-stable)
+
+(We keep coconut products off by default because of your coconut allergy setting.)
+
+9) Chiles & Heat (Dried and Canned)
+
+Dried: Ancho, Guajillo, Árbol, Chipotle morita, Red pepper flakes
+Dry aromatics: Dried minced onion, Dried minced garlic
+Canned: Chipotles in adobo, Diced green chiles, Roasted green chiles
+
+10) Beverages & Treats
+
+Coffee (whole/ground), Tea (black/green/herbal), Chocolate bars, Cacao nibs
+
+(Plant milks remain out of regular pantry; they can live in your “Emergency Pantry (opt-in)”.)
+*/
+  </script>
+</body>
+</html>
